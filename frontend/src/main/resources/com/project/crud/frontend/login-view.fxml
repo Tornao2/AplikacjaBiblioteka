@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<StackPane stylesheets="@style.css" xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.project.crud.frontend.controllers.LoginController">
+  <VBox alignment="CENTER" spacing="25.0" maxWidth="400" maxHeight="500" styleClass="login-card">
+    <VBox alignment="CENTER" spacing="5">
+      <Label text="System Zarządzania &#10;Biblioteką" textAlignment="CENTER" styleClass="header-text"/>
+    </VBox>
+    <VBox spacing="15.0">
+      <TextField fx:id="usernameField" promptText="Nazwa użytkownika" />
+      <PasswordField fx:id="passwordField" promptText="Hasło" />
+    </VBox>
+    <Button text="ZALOGUJ SIĘ" onAction="#handleLogin" maxWidth="Infinity" styleClass="button-primary"/>
+    <Label fx:id="errorLabel" style="-fx-text-fill: #c0392b; -fx-font-size: 24px;"/>
+  </VBox>
+</StackPane>

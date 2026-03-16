@@ -1,0 +1,13 @@
+services:
+  library-db:
+    image: gvenzl/oracle-free:latest
+    container_name: library-oracle
+    ports:
+      - "1521:1521"
+    environment:
+      - ORACLE_PASSWORD=Haslo
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+
+volumes:
+  oracle_data:
