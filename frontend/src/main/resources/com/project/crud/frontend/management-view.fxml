@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.project.crud.frontend.controllers.ManagementController"
+      style="-fx-padding: 20;">
+    <Label text="Zatwierdzanie Przedłużeń" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+    <TableView fx:id="requestTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colUser" text="Użytkownik" prefWidth="150"/>
+            <TableColumn fx:id="colBook" text="Książka" prefWidth="250"/>
+            <TableColumn fx:id="colCurrentDue" text="Obecny termin" prefWidth="120"/>
+        </columns>
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+        </columnResizePolicy>
+    </TableView>
+    <HBox spacing="10">
+        <Button fx:id="approveBtn" text="Zatwierdź przedłużenie (+7 dni)"
+                onAction="#handleApprove" style="-fx-background-color: #2d5a27; -fx-text-fill: white;"/>
+        <Button text="Odrzuć prośbę" onAction="#handleReject" style="-fx-border-color: #c0392b;"/>
+    </HBox>
+</VBox>

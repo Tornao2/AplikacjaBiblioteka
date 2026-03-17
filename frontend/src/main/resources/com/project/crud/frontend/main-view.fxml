@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane prefHeight="600.0" prefWidth="800.0" xmlns:fx="http://javafx.com/fxml" fx:controller="com.project.crud.frontend.controllers.MainController">
+    <left>
+        <VBox spacing="10" style="-fx-background-color: #2d5a27; -fx-padding: 15; -fx-min-width: 180;">
+            <Label fx:id="welcomeLabel" text="Witaj!" style="-fx-text-fill: white; -fx-wrap-text: true;"/>
+            <Separator/>
+            <Button fx:id="inventoryBtn" text="Inwentarz" onAction="#showInventory" maxWidth="Infinity" visible="false" managed="false"/>
+            <Button fx:id="enlegthenMenuBtn" text="Zatwierdzanie" onAction="#showManagement" maxWidth="Infinity" visible="false" managed="false"/>
+            <Button fx:id="staffSearchBtn" text="Wyszukaj" onAction="#showUserManagement" maxWidth="Infinity" visible="false" managed="false"/>
+            <Button text="Katalog" onAction="#showCatalog" maxWidth="Infinity"/>
+            <Button text="Moje Książki" onAction="#showMyLoans" maxWidth="Infinity"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Button text="Wyloguj" onAction="#handleLogout" maxWidth="Infinity" style="-fx-background-color: #c0392b; -fx-text-fill: white;"/>
+        </VBox>
+    </left>
+    <center>
+        <StackPane fx:id="contentArea" style="-fx-padding: 20;"/>
+    </center>
+</BorderPane>

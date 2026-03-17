@@ -34,8 +34,8 @@ public class LoginController {
 
     private void loadMainView() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/hello-view.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 800, 600);
+            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/main-view.fxml"));
+            Scene scene = new Scene(fxmlLoader.load(), 1200, 900);
             Stage stage = (Stage) usernameField.getScene().getWindow();
             stage.setScene(scene);
             stage.setTitle("System Biblioteczny");

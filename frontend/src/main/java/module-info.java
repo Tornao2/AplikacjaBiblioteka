@@ -5,6 +5,7 @@ module com.project.crud.frontend {
     requires static lombok;
     requires java.net.http;
 
+    opens com.project.crud.frontend.model to javafx.base, javafx.fxml;
     opens com.project.crud.frontend to javafx.fxml, com.google.gson;
     exports com.project.crud.frontend;
     exports com.project.crud.frontend.controllers;

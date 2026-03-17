@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="15" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.project.crud.frontend.controllers.UserManagementController"
+      style="-fx-padding: 20;">
+    <Label text="Zarządzanie Użytkownikami" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <TextField fx:id="userSearchField" promptText="Wyszukaj użytkownika (Imię, Nazwisko, Email)..." HBox.hgrow="ALWAYS" />
+    </HBox>
+    <TableView fx:id="userTable" prefHeight="200">
+        <columns>
+            <TableColumn fx:id="colUserName" text="Imię i Nazwisko" prefWidth="200"/>
+            <TableColumn fx:id="colUserEmail" text="Email" prefWidth="250"/>
+        </columns>
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+        </columnResizePolicy>
+    </TableView>
+    <Separator/>
+    <Label text="Wypożyczenia wybranego użytkownika:" style="-fx-font-weight: bold;"/>
+    <TableView fx:id="userLoansTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colBookTitle" text="Tytuł Książki" prefWidth="300"/>
+            <TableColumn fx:id="colDueDate" text="Termin zwrotu" prefWidth="150"/>
+            <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
+        </columns>
+        <placeholder>
+            <Label text="Wybierz użytkownika z listy powyżej, aby zobaczyć jego książki."/>
+        </placeholder>
+    </TableView>
+    <HBox spacing="10">
+        <Button fx:id="returnBookBtn" text="Przyjmij zwrot" onAction="#handleReturnAction"
+                style="-fx-background-color: #c0392b; -fx-text-fill: white;"/>
+    </HBox>
+</VBox>

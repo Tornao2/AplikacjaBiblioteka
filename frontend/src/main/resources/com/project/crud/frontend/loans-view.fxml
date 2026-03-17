@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.project.crud.frontend.controllers.LoansController"
+      style="-fx-padding: 20;">
+    <Label text="Moje Wypożyczenia" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
+    <TableView fx:id="loanTable" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn fx:id="colLoanTitle" text="Tytuł Książki" prefWidth="300"/>
+            <TableColumn fx:id="colDueDate" text="Termin zwrotu" prefWidth="150"/>
+        </columns>
+        <placeholder>
+            <Label text="Nie masz obecnie żadnych wypożyczonych książek."/>
+        </placeholder>
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+        </columnResizePolicy>
+    </TableView>
+    <HBox spacing="10">
+        <Button fx:id="prolongBtn"
+                text="Poproś o przedłużenie"
+                onAction="#requestProlongation"
+                style="-fx-cursor: hand;"/>
+    </HBox>
+</VBox>
