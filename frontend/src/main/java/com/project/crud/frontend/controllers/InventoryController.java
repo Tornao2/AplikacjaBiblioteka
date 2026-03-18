@@ -17,7 +17,7 @@ public class InventoryController {
     @FXML private TableColumn<BookDTO, Integer> colYear;
     @FXML private Button deleteBtn;
 
-    private static final ObservableList<BookDTO> masterInventory = FXCollections.observableArrayList();
+    static final ObservableList<BookDTO> masterInventory = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
@@ -34,6 +34,7 @@ public class InventoryController {
         ));
         inventoryTable.setItems(masterInventory);
         deleteBtn.disableProperty().bind(inventoryTable.getSelectionModel().selectedItemProperty().isNull());
+        inventoryTable.setPlaceholder(new Label("Brak książek w systemie."));
     }
 
     @FXML
@@ -52,8 +53,12 @@ public class InventoryController {
                     .build();
             masterInventory.add(newBook);
             clearFields();
+        } catch (NumberFormatException e) {
+            showAlert("Błąd formatu", "Rok wydania musi być liczbą!");
+        } catch (IllegalArgumentException e) {
+            showAlert("Błąd walidacji", e.getMessage());
         } catch (Exception e) {
-            System.err.println("Błąd" + e.getMessage());
+            showAlert("Błąd", "Wystąpił nieoczekiwany błąd: " + e.getMessage());
         }
     }
 

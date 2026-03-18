@@ -2,28 +2,49 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import java.net.URL?>
 
-<VBox spacing="15" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.project.crud.frontend.controllers.InventoryController"
-      style="-fx-padding: 20;">
-    <Label text="Zarządzanie Zasobami (Admin)" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
-    <VBox spacing="10" style="-fx-background-color: #f8f9fa; -fx-padding: 15; -fx-border-color: #dee2e6; -fx-border-radius: 5; -fx-background-radius: 5;">
-        <Label text="Dodaj nową pozycję" style="-fx-font-weight: bold;"/>
-        <GridPane hgap="10" vgap="10">
-            <TextField fx:id="titleField" promptText="Tytuł" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-            <TextField fx:id="authorField" promptText="Autor" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-            <TextField fx:id="isbnField" promptText="ISBN" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-            <TextField fx:id="yearField" promptText="Rok wydania" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-            <ComboBox fx:id="categoryCombo" promptText="Kategoria" GridPane.columnIndex="0" GridPane.rowIndex="2" maxWidth="Infinity"/>
-            <TextArea fx:id="descriptionArea" promptText="Opis książki..." GridPane.columnIndex="0" GridPane.rowIndex="3"
-                      GridPane.columnSpan="2" prefHeight="80" wrapText="true"/>
+<VBox spacing="15" styleClass="root-container" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.project.crud.frontend.controllers.InventoryController">
+
+    <stylesheets>
+        <URL value="@style.css" />
+    </stylesheets>
+
+    <Label text="Zarządzanie Zasobami" styleClass="header-text"/>
+    <VBox spacing="10" styleClass="stats-box" maxWidth="Infinity">
+        <Label text="Dodaj nową pozycję" styleClass="stats-label"/>
+        <GridPane maxWidth="Infinity" hgap="10" vgap="10" HBox.hgrow="ALWAYS">
+            <columnConstraints>
+                <ColumnConstraints hgrow="ALWAYS" percentWidth="40.0"/>
+                <ColumnConstraints hgrow="ALWAYS" percentWidth="40.0"/>
+                <ColumnConstraints hgrow="ALWAYS" percentWidth="20.0"/>
+            </columnConstraints>
+            <TextField fx:id="titleField" promptText="Tytuł"
+                       GridPane.columnIndex="0" GridPane.rowIndex="0"
+                       maxWidth="Infinity"/>
+            <TextField fx:id="authorField" promptText="Autor"
+                       GridPane.columnIndex="1" GridPane.rowIndex="0"
+                       maxWidth="Infinity"/>
+            <TextField fx:id="isbnField" promptText="ISBN"
+                       GridPane.columnIndex="0" GridPane.rowIndex="1"
+                       maxWidth="Infinity"/>
+            <TextField fx:id="yearField" promptText="Rok wydania"
+                       GridPane.columnIndex="1" GridPane.rowIndex="1"
+                       maxWidth="Infinity"/>
+            <ComboBox fx:id="categoryCombo" promptText="Kategoria"
+                      GridPane.columnIndex="0" GridPane.rowIndex="2"
+                      maxWidth="Infinity"/>
+            <TextArea fx:id="descriptionArea" promptText="Opis książki..."
+                      GridPane.columnIndex="0" GridPane.rowIndex="3"
+                      GridPane.columnSpan="2" maxWidth="Infinity"
+                      prefHeight="80" wrapText="true"/>
             <Button text="Dodaj do systemu" onAction="#handleAddBook"
-                    style="-fx-background-color: #2d5a27; -fx-text-fill: white;"
-                    GridPane.columnIndex="2" GridPane.rowIndex="0" GridPane.rowSpan="4" maxHeight="Infinity" prefWidth="120"/>
+                    GridPane.columnIndex="2" GridPane.rowIndex="0" GridPane.rowSpan="4"
+                    maxWidth="Infinity" maxHeight="Infinity" styleClass="button-primary"/>
         </GridPane>
     </VBox>
-    <Separator/>
-    <TableView fx:id="inventoryTable" VBox.vgrow="ALWAYS">
+    <TableView fx:id="inventoryTable" VBox.vgrow="ALWAYS" styleClass="table-view">
         <columns>
             <TableColumn fx:id="colId" text="ID" prefWidth="40"/>
             <TableColumn fx:id="colTitle" text="Tytuł" prefWidth="150"/>
@@ -39,5 +60,5 @@
         </columnResizePolicy>
     </TableView>
     <Button fx:id="deleteBtn" text="Usuń zaznaczoną książkę" onAction="#handleDeleteBook"
-            maxWidth="Infinity" style="-fx-background-color: #c0392b; -fx-text-fill: white;"/>
+            maxWidth="Infinity" styleClass="button-outline-danger"/>
 </VBox>

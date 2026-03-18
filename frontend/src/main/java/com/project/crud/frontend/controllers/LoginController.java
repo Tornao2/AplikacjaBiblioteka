@@ -19,13 +19,13 @@ public class LoginController {
         String user = usernameField.getText();
         String pass = passwordField.getText();
         if ("admin".equals(user) && "admin".equals(pass)) {
-            UserSession.login(user, UserRole.ADMIN);
+            UserSession.login(user, "admin@admin.pl", UserRole.ADMIN);
             loadMainView();
         } else if ("biblio".equals(user) && "biblio".equals(pass)) {
-            UserSession.login(user, UserRole.LIBRARIAN);
+            UserSession.login(user, "biblio@admin.pl", UserRole.LIBRARIAN);
             loadMainView();
         } else if ("user".equals(user) && "user".equals(pass)) {
-            UserSession.login(user, UserRole.USER);
+            UserSession.login(user,"user@admin.pl", UserRole.USER);
             loadMainView();
         } else {
             errorLabel.setText("Błędne dane!");

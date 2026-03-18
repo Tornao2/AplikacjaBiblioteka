@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20" styleClass="root-container" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.project.crud.frontend.controllers.ProfileController"
+      maxWidth="Infinity">
+    <Label text="Ustawienia Profilu" styleClass="header-text"/>
+    <VBox spacing="20" styleClass="form-container" maxWidth="Infinity">
+        <Label text="Zmień adres Email" styleClass="stats-label"/>
+        <GridPane hgap="10" vgap="10" maxWidth="Infinity">
+            <columnConstraints>
+                <ColumnConstraints hgrow="ALWAYS"/>
+                <ColumnConstraints prefWidth="120"/>
+            </columnConstraints>
+            <TextField fx:id="emailField" promptText="Nowy adres email"
+                       GridPane.columnIndex="0" maxWidth="Infinity"/>
+            <Button text="Aktualizuj" onAction="#handleUpdateEmail"
+                    styleClass="button-primary" GridPane.columnIndex="1" maxWidth="Infinity"/>
+        </GridPane>
+        <Separator maxWidth="Infinity"/>
+        <Label text="Zmień hasło" styleClass="stats-label"/>
+        <VBox spacing="10" maxWidth="Infinity">
+            <PasswordField fx:id="currentPasswordField" promptText="Obecne hasło" maxWidth="Infinity"/>
+            <PasswordField fx:id="newPasswordField" promptText="Nowe hasło" maxWidth="Infinity"/>
+            <PasswordField fx:id="confirmPasswordField" promptText="Powtórz nowe hasło" maxWidth="Infinity"/>
+            <Button text="Zmień hasło" onAction="#handleUpdatePassword"
+                    styleClass="button-primary" maxWidth="Infinity"/>
+        </VBox>
+    </VBox>
+</VBox>

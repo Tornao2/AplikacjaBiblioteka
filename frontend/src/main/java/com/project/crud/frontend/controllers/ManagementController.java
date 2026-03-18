@@ -35,13 +35,17 @@ public class ManagementController {
             selected.setExtended(true);
             allLoans.remove(requestTable.getSelectionModel().getSelectedItem());
             requestTable.refresh();
-            showInfo("Sukces", "Przedłużono termin zwrotu dla: " + selected.getBookTitle());
+            showInfo("Przedłużono termin zwrotu dla: " + selected.getBookTitle());
         }
     }
 
     @FXML
     private void handleReject() {
-        allLoans.remove(requestTable.getSelectionModel().getSelectedItem());
+        LoanDTO selected = requestTable.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            allLoans.remove(selected);
+            System.out.println("Odrzucono prośbę dla: " + selected.getBookTitle());
+        }
     }
 
     private void loadAllLoans() {
@@ -53,9 +57,9 @@ public class ManagementController {
                 .dueDate(LocalDate.now().minusDays(1)).extended(false).build());
     }
 
-    private void showInfo(String title, String msg) {
+    private void showInfo(String msg) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, msg);
-        alert.setTitle(title);
+        alert.setTitle("Sukces");
         alert.show();
     }
 }

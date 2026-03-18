@@ -2,12 +2,15 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import java.net.URL?>
 
-<VBox spacing="10" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.project.crud.frontend.controllers.ManagementController"
-      style="-fx-padding: 20;">
-    <Label text="Zatwierdzanie Przedłużeń" style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
-    <TableView fx:id="requestTable" VBox.vgrow="ALWAYS">
+<VBox spacing="15" styleClass="root-container" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.project.crud.frontend.controllers.ManagementController">
+    <stylesheets>
+        <URL value="@style.css" />
+    </stylesheets>
+    <Label text="Zatwierdzanie Przedłużeń" styleClass="header-text"/>
+    <TableView fx:id="requestTable" VBox.vgrow="ALWAYS" styleClass="table-view">
         <columns>
             <TableColumn fx:id="colUser" text="Użytkownik" prefWidth="150"/>
             <TableColumn fx:id="colBook" text="Książka" prefWidth="250"/>
@@ -19,7 +22,8 @@
     </TableView>
     <HBox spacing="10">
         <Button fx:id="approveBtn" text="Zatwierdź przedłużenie (+7 dni)"
-                onAction="#handleApprove" style="-fx-background-color: #2d5a27; -fx-text-fill: white;"/>
-        <Button text="Odrzuć prośbę" onAction="#handleReject" style="-fx-border-color: #c0392b;"/>
+                onAction="#handleApprove" styleClass="button-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+        <Button text="Odrzuć prośbę" onAction="#handleReject"
+                styleClass="button-outline-danger" prefWidth="150"/>
     </HBox>
 </VBox>

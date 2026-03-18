@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20" styleClass="root-container" maxWidth="Infinity" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.project.crud.frontend.controllers.AddUserController">
+    <Label text="Rejestracja Nowego Czytelnika" styleClass="header-text"/>
+    <VBox spacing="25" styleClass="form-container" maxWidth="Infinity">
+        <GridPane hgap="15" vgap="15" maxWidth="Infinity">
+            <columnConstraints>
+                <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0"/>
+                <ColumnConstraints hgrow="ALWAYS" percentWidth="50.0"/>
+            </columnConstraints>
+            <Label text="Dane Osobowe" styleClass="stats-label" GridPane.columnSpan="2"/>
+            <TextField fx:id="firstNameField" promptText="Imię"
+                       GridPane.rowIndex="1" GridPane.columnIndex="0" maxWidth="Infinity"/>
+            <TextField fx:id="lastNameField" promptText="Nazwisko"
+                       GridPane.rowIndex="1" GridPane.columnIndex="1" maxWidth="Infinity"/>
+            <TextField fx:id="emailField" promptText="Adres Email"
+                       GridPane.rowIndex="2" GridPane.columnIndex="0" maxWidth="Infinity"/>
+            <TextField fx:id="usernameField" promptText="Nazwa użytkownika"
+                       GridPane.rowIndex="2" GridPane.columnIndex="1" maxWidth="Infinity"/>
+            <Separator GridPane.rowIndex="3" GridPane.columnSpan="2" maxWidth="Infinity"/>
+            <Label text="Bezpieczeństwo" styleClass="stats-label" GridPane.rowIndex="4" GridPane.columnSpan="2"/>
+            <PasswordField fx:id="passwordField" promptText="Hasło startowe"
+                           GridPane.rowIndex="5" GridPane.columnIndex="0" maxWidth="Infinity"/>
+            <PasswordField fx:id="confirmPasswordField" promptText="Powtórz hasło"
+                           GridPane.rowIndex="5" GridPane.columnIndex="1" maxWidth="Infinity"/>
+        </GridPane>
+        <HBox spacing="10" >
+            <Button text="Zarejestruj Czytelnika" onAction="#handleRegister"
+                    styleClass="button-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+            <Button text="Wyczyść" onAction="#handleClear" styleClass="button-outline-danger"/>
+        </HBox>
+    </VBox>
+</VBox>

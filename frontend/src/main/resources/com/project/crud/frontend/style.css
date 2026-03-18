@@ -1,47 +1,190 @@
 .root {
     -fx-font-family: "Segoe UI Semibold", "Arial", sans-serif;
     -fx-background-color: #f4f7f6;
+    -fx-primary: #2d5a27;
+    -fx-primary-dark: #1e3d1a;
+    -fx-danger: #c0392b;
+    -fx-danger-dark: #a93226;
 }
 
-.login-card {
+.root-container {
+    -fx-padding: 10;
+}
+
+.login-card, .stats-box, .form-container {
     -fx-background-color: #ffffff;
-    -fx-background-radius: 15;
-    -fx-padding: 40;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 20, 0, 0, 10);
-}
-
-.text-field, .password-field {
-    -fx-background-color: #f9f9f9;
-    -fx-border-color: transparent transparent #d2d2d2 transparent;
-    -fx-border-width: 0 0 2 0;
-    -fx-padding: 10 5 10 5;
-    -fx-font-size: 14px;
-    -fx-transition: 0.3s;
-}
-
-.text-field:focused, .password-field:focused {
-    -fx-border-color: #2d5a27;
-    -fx-background-color: #f0f5f0;
-}
-
-.button-primary {
-    -fx-background-color: #2d5a27;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-font-size: 15px;
-    -fx-background-radius: 8;
-    -fx-padding: 12 30 12 30;
-    -fx-cursor: hand;
-}
-
-.button-primary:hover {
-    -fx-background-color: #1e3d1a;
-    -fx-effect: dropshadow(gaussian, rgba(45,90,39,0.3), 10, 0, 0, 4);
+    -fx-background-radius: 12;
+    -fx-padding: 15;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 15, 0, 0, 5);
 }
 
 .header-text {
-    -fx-font-size: 32px;
+    -fx-font-size: 28px;
     -fx-font-weight: bold;
     -fx-text-fill: #1a1a1a;
-    -fx-alignment: center;
+}
+
+.stats-label {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.stats-overdue {
+    -fx-text-fill: -fx-danger;
+    -fx-font-size: 14px;
+}
+
+.stats-returned {
+    -fx-text-fill: -fx-primary;
+    -fx-font-size: 14px;
+}
+
+.text-field, .password-field, .text-area, .combo-box {
+    -fx-background-color: #f9f9f9;
+    -fx-border-color: transparent transparent #d2d2d2 transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-padding: 8 5;
+    -fx-font-size: 14px;
+}
+
+.text-field:focused, .password-field:focused, .text-area:focused, .combo-box:focused {
+    -fx-border-color: -fx-primary;
+    -fx-background-color: #f0f5f0;
+}
+
+.button-primary, .button-outline-danger {
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-padding: 12 20;
+    -fx-cursor: hand;
+    -fx-margin: 20;
+}
+
+.button-primary {
+    -fx-background-color: -fx-primary;
+    -fx-text-fill: white;
+}
+
+.button-primary:hover {
+    -fx-background-color:
+    -fx-primary-dark;
+    -fx-effect: dropshadow(gaussian, rgba(45,90,39,0.3), 8, 0, 0, 3);
+}
+
+.button-outline-danger {
+    -fx-background-color: #f4f7f6;
+    -fx-border-color: -fx-danger;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-radius: 10;
+    -fx-background-insets: 0;
+    -fx-text-fill: -fx-danger;
+}
+
+.button-outline-danger:hover {
+    -fx-background-color: -fx-danger;
+    -fx-text-fill: white;
+}
+
+.button-disabled {
+    -fx-background-color: #7f8c8d !important;
+    -fx-text-fill: #bdc3c7 !important;
+}
+
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: #dee2e6;
+    -fx-border-radius: 8;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
+.table-view .column-header {
+    -fx-background-color: #f8f9fa;
+    -fx-border-color: transparent transparent #dee2e6 transparent;
+    -fx-padding: 12;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #495057;
+    -fx-font-weight: bold;
+}
+
+.table-view .table-cell {
+    -fx-padding: 12; -fx-text-fill: #212529;
+    -fx-border-color: transparent;
+}
+
+.table-row-cell:focused, .table-row-cell:selected {
+    -fx-background-color: #e9ecef;
+}
+
+.table-row-overdue {
+    -fx-background-color: #fff0f0;
+}
+
+.table-row-returned {
+    -fx-opacity: 0.5;
+    -fx-background-color: #f8f9fa;
+}
+
+.table-view .scroll-bar:horizontal {
+    -fx-max-height: 0;
+    -fx-padding: 0;
+    -fx-opacity: 0;
+}
+
+.sidebar {
+    -fx-background-color:
+    -fx-primary;
+    -fx-padding: 20;
+    -fx-min-width: 220;
+}
+
+.sidebar-welcome {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 10 0;
+}
+
+.sidebar-separator {
+    -fx-opacity: 0.3;
+}
+
+.sidebar-section-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 15 0 5 0;
+    -fx-text-fill: #a8d5a2;
+}
+
+#adminSectionLabel {
+    -fx-text-fill: #f39c12;
+}
+
+#librarianSectionLabel {
+    -fx-text-fill: #33FF99;
+}
+
+.sidebar-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e8f5e9;
+    -fx-alignment: center-left;
+    -fx-padding: 10 15;
+    -fx-background-radius: 5;
+    -fx-cursor: hand;
+}
+
+.sidebar-button:hover {
+    -fx-background-color: #3a7532;
+    -fx-text-fill: white;
+}
+
+.sidebar-button:pressed {
+    -fx-background-color: -fx-primary-dark;
+}
+
+.content-pane {
+    -fx-background-color: #f4f7f6;
 }

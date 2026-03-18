@@ -18,7 +18,9 @@ public class MainController {
     @FXML private Button inventoryBtn;
     @FXML private StackPane contentArea;
     @FXML private Label welcomeLabel;
-
+    @FXML private Label adminSectionLabel;
+    @FXML private Label librarianSectionLabel;
+    @FXML private Label userSectionLabel;
     @FXML
     public void initialize() {
         if (UserSession.getInstance() != null) {
@@ -28,6 +30,12 @@ public class MainController {
         UserRole role = UserSession.getInstance().getRole();
         boolean isStaff = (role == UserRole.LIBRARIAN || role == UserRole.ADMIN);
         boolean isAdmin = role == UserRole.ADMIN;
+        adminSectionLabel.setVisible(isAdmin);
+        adminSectionLabel.setManaged(isAdmin);
+        librarianSectionLabel.setVisible(isStaff);
+        librarianSectionLabel.setManaged(isStaff);
+        userSectionLabel.setVisible(isStaff);
+        userSectionLabel.setManaged(isStaff);
         enlegthenMenuBtn.setVisible(isStaff);
         enlegthenMenuBtn.setManaged(isStaff);
         staffSearchBtn.setVisible(isStaff);
@@ -61,7 +69,7 @@ public class MainController {
         UserSession.logout();
         Stage stage = (Stage) welcomeLabel.getScene().getWindow();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/login-view.fxml"));
-        stage.setScene(new Scene(loader.load(), 800, 600));
+        stage.setScene(new Scene(loader.load(), 1200, 900));
         stage.setTitle("Logowanie");
     }
 
@@ -78,5 +86,15 @@ public class MainController {
     @FXML
     public void showInventory() {
         loadView("inventory-view.fxml");
+    }
+
+    @FXML
+    private void showProfileSettings() {
+        loadView("profile-settings-view.fxml");
+    }
+
+    @FXML
+    private void showAddUser() {
+        loadView("add-user-view.fxml");
     }
 }
