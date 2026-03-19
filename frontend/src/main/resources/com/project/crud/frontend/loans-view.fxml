@@ -20,6 +20,7 @@
             <TableColumn fx:id="colLoanTitle" text="Tytuł Książki" prefWidth="250"/>
             <TableColumn fx:id="colDueDate" text="Termin zwrotu" prefWidth="120"/>
             <TableColumn fx:id="colStatus" text="Status" prefWidth="120"/>
+            <TableColumn fx:id="payDue" text="Do zapłaty" prefWidth="100"/>
         </columns>
         <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

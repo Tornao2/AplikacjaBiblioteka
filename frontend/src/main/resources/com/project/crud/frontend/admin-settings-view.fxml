@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20" styleClass="root-container" maxWidth="Infinity" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.project.crud.frontend.controllers.AdminSettingsController">
+    <Label text="Konfiguracja Systemu" styleClass="header-text"/>
+    <VBox spacing="25" styleClass="form-container" maxWidth="Infinity">
+        <VBox spacing="15">
+            <Label text="Zasady Wypożyczeń i Kar" styleClass="stats-label"/>
+            <GridPane hgap="20" vgap="15">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS" percentWidth="70.0" />
+                    <ColumnConstraints hgrow="ALWAYS" percentWidth="30.0" />
+                </columnConstraints>
+                <Label text="Domyślny czas wypożyczenia (dni):" GridPane.rowIndex="0"/>
+                <Spinner fx:id="loanDurationSpinner" editable="true" maxWidth="Infinity" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                <Label text="Stawka kary za dzień zwłoki (PLN):" GridPane.rowIndex="1"/>
+                <TextField fx:id="penaltyRateField" promptText="np. 0.50" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+            </GridPane>
+        </VBox>
+        <Separator/>
+        <VBox spacing="15">
+            <Label text="Limity Wypożyczonych Książek" styleClass="stats-label"/>
+            <GridPane hgap="20" vgap="15">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS" percentWidth="70.0" />
+                    <ColumnConstraints hgrow="ALWAYS" percentWidth="30.0" />
+                </columnConstraints>
+                <Label text="Limit dla Użytkownika:" GridPane.rowIndex="0"/>
+                <Spinner fx:id="userLimitSpinner" editable="true" maxWidth="Infinity" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+            </GridPane>
+        </VBox>
+        <HBox alignment="CENTER_RIGHT"  maxWidth="Infinity" spacing="15">
+            <Button text="Zapisz ustawienia" HBox.hgrow="ALWAYS" onAction="#handleSaveSettings" styleClass="button-primary" maxWidth="Infinity"/>
+            <Button text="Przywróć domyślne" onAction="#handleReset" styleClass="button-outline-danger"/>
+        </HBox>
+    </VBox>
+</VBox>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20" styleClass="root-container" maxWidth="Infinity" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.project.crud.frontend.controllers.AdminLogsController">
+    <Label text="Dziennik Zdarzeń Systemowych" styleClass="header-text"/>
+    <VBox spacing="15" styleClass="form-container" maxWidth="Infinity" VBox.vgrow="ALWAYS">
+        <HBox spacing="15" alignment="CENTER_LEFT">
+            <TextField fx:id="logSearchField" promptText="Szukaj w treści logów..." HBox.hgrow="ALWAYS" />
+            <ComboBox fx:id="severityFilter" prefWidth="180" promptText="Filtruj poziom" />
+        </HBox>
+        <TableView fx:id="logTable" maxWidth="Infinity" VBox.vgrow="ALWAYS">
+            <columnResizePolicy>
+                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+            </columnResizePolicy>
+            <columns>
+                <TableColumn fx:id="colTimestamp" text="Data i godzina" prefWidth="180" />
+                <TableColumn fx:id="colUser" text="Użytkownik" prefWidth="120" />
+                <TableColumn fx:id="colAction" text="Akcja" prefWidth="150" />
+                <TableColumn fx:id="colDetails" text="Szczegóły" />
+                <TableColumn fx:id="colSeverity" text="Poziom" prefWidth="100" />
+            </columns>
+        </TableView>
+        <HBox spacing="10" alignment="CENTER_RIGHT">
+            <Button text="Eksportuj do CSV (.csv)" onAction="#handleExport" styleClass="button-primary" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+            <Button text="Wyczyść dziennik" onAction="#handleClearLogs" styleClass="button-outline-danger"/>
+        </HBox>
+    </VBox>
+</VBox>

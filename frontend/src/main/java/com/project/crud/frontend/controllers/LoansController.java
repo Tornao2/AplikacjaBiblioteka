@@ -14,6 +14,7 @@ public class LoansController {
     @FXML private TableView<LoanDTO> loanTable;
     @FXML private TableColumn<LoanDTO, String> colLoanTitle, colStatus;
     @FXML private TableColumn<LoanDTO, LocalDate> colDueDate;
+    @FXML private TableColumn<LoanDTO, Long> payDue;
     @FXML private Button prolongBtn;
 
     @FXML private Label totalLoansLabel, overdueCountLabel, booksReturnedLabel;
@@ -24,6 +25,7 @@ public class LoansController {
     public void initialize() {
         colLoanTitle.setCellValueFactory(new PropertyValueFactory<>("bookTitle"));
         colDueDate.setCellValueFactory(new PropertyValueFactory<>("dueDate"));
+        payDue.setCellValueFactory(new PropertyValueFactory<>("overduePayFormatted"));
         colStatus.setCellValueFactory(cellData -> {
             LoanDTO loan = cellData.getValue();
             return new SimpleStringProperty(loan.getStatus());
@@ -84,9 +86,9 @@ public class LoansController {
     }
 
     private void loadMockLoans() {
-        loanData.add(LoanDTO.builder().bookTitle("Rok 1984").dueDate(LocalDate.now().plusDays(5)).extended(false).build());
-        loanData.add(LoanDTO.builder().bookTitle("Hobbit").dueDate(LocalDate.now().minusDays(2)).extended(true).build());
-        loanData.add(LoanDTO.builder().bookTitle("Wiedźmin").dueDate(LocalDate.now().minusDays(10)).returnDate(LocalDate.now().minusDays(5)).extended(false).build());
+        loanData.add(LoanDTO.builder().bookTitle("Rok 1984").dueDate(LocalDate.now().plusDays(5)).extended(false).overduePay(50L).build());
+        loanData.add(LoanDTO.builder().bookTitle("Hobbit").dueDate(LocalDate.now().minusDays(2)).extended(true).overduePay(50L).build());
+        loanData.add(LoanDTO.builder().bookTitle("Wiedźmin").dueDate(LocalDate.now().minusDays(10)).returnDate(LocalDate.now().minusDays(5)).extended(false).overduePay(50L).build());
     }
 
     private void showAlert() {

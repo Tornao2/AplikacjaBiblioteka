@@ -188,3 +188,22 @@
 .content-pane {
     -fx-background-color: #f4f7f6;
 }
+
+.stats-card {
+    -fx-background-color: white;
+    -fx-padding: 20;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);
+}
+
+.stats-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: #7f8c8d;
+    -fx-font-weight: bold;
+}
+
+.stats-value-large {
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2c3e50;
+}

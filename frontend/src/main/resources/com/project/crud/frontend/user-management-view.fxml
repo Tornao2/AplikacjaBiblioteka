@@ -27,6 +27,7 @@
             <TableColumn fx:id="colBookTitle" text="Tytuł Książki" prefWidth="300"/>
             <TableColumn fx:id="colDueDate" text="Termin zwrotu" prefWidth="150"/>
             <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
+            <TableColumn fx:id="payDue" text="Do zapłaty" prefWidth="100"/>
         </columns>
     </TableView>
         <Button fx:id="returnBookBtn" text="Przyjmij zwrot książki"

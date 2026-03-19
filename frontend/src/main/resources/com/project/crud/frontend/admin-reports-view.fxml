@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="20" styleClass="root-container" maxWidth="Infinity" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.project.crud.frontend.controllers.AdminReportsController">
+    <Label text="Raporty i Analizy Systemowe" styleClass="header-text"/>
+    <HBox spacing="10" alignment="CENTER">
+        <VBox styleClass="stats-card" prefWidth="210" alignment="CENTER">
+            <Label text="Aktywne Wypożyczenia" styleClass="stats-label"/>
+            <Label fx:id="activeLoansLabel" text="0" styleClass="stats-value-large"/>
+        </VBox>
+        <VBox styleClass="stats-card" prefWidth="220" alignment="CENTER">
+            <Label text="Miesięczne Wynagrodzenia" styleClass="stats-label"/>
+            <Label fx:id="totalSalariesLabel" text="0.00" styleClass="stats-value-large" style="-fx-text-fill: #27ae60;"/>
+        </VBox>
+        <VBox styleClass="stats-card" prefWidth="160" alignment="CENTER">
+            <Label text="Średni Staż Pracy" styleClass="stats-label"/>
+            <Label fx:id="avgTenureLabel" text="0 lat" styleClass="stats-value-large"/>
+        </VBox>
+        <VBox styleClass="stats-card" prefWidth="190" alignment="CENTER">
+            <Label text="Liczba Użytkowników" styleClass="stats-label"/>
+            <Label fx:id="totalUsersLabel" text="0" styleClass="stats-value-large"/>
+        </VBox>
+        <VBox styleClass="stats-card" prefWidth="170" alignment="CENTER">
+            <Label text="Suma Kar" styleClass="stats-label"/>
+            <Label fx:id="totalPenaltiesLabel" text="0.00" styleClass="stats-value-large" style="-fx-text-fill: #e74c3c;"/>
+        </VBox>
+    </HBox>
+    <HBox spacing="20" VBox.vgrow="ALWAYS">
+        <VBox spacing="10" HBox.hgrow="ALWAYS" styleClass="form-container">
+            <Label text="Popularność Gatunków" styleClass="stats-label"/>
+            <PieChart fx:id="genrePieChart"/>
+        </VBox>
+        <VBox spacing="10" HBox.hgrow="ALWAYS" styleClass="form-container">
+            <Label text="Wypożyczenia (Ostatnie 6 miesięcy)" styleClass="stats-label"/>
+            <BarChart fx:id="loansBarChart">
+                <xAxis><CategoryAxis side="BOTTOM" /></xAxis>
+                <yAxis><NumberAxis side="LEFT" /></yAxis>
+            </BarChart>
+        </VBox>
+    </HBox>
+</VBox>

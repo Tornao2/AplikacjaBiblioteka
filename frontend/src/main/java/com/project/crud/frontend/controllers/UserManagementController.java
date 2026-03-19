@@ -16,10 +16,10 @@ public class UserManagementController {
     @FXML private TextField userSearchField;
     @FXML private TableView<UserDTO> userTable;
     @FXML private TableColumn<UserDTO, String> colUserName, colUserEmail;
-
     @FXML private TableView<LoanDTO> userLoansTable;
     @FXML private TableColumn<LoanDTO, String> colBookTitle, colStatus;
     @FXML private TableColumn<LoanDTO, LocalDate> colDueDate;
+    @FXML private TableColumn<LoanDTO, Long> payDue;
 
     @FXML private Button returnBookBtn;
     @FXML private ComboBox<BookDTO> availableBooksCombo;
@@ -35,6 +35,7 @@ public class UserManagementController {
         colBookTitle.setCellValueFactory(new PropertyValueFactory<>("bookTitle"));
         colDueDate.setCellValueFactory(new PropertyValueFactory<>("dueDate"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+        payDue.setCellValueFactory(new PropertyValueFactory<>("overduePayFormatted"));
         loadMockData();
         setupUserSearch();
         setupAvailableBooksCombo();
@@ -94,9 +95,9 @@ public class UserManagementController {
                     .bookTitle(book.getTitle())
                     .dueDate(LocalDate.now().plusDays(14))
                     .loanDate(LocalDate.now())
+                    .overduePay(50L)
                     .extended(false)
                     .build();
-
             allLoans.add(newLoan);
             availableBooksCombo.getSelectionModel().clearSelection();
             refreshTables();
@@ -133,7 +134,7 @@ public class UserManagementController {
     private void loadMockData() {
         allUsers.add(new UserDTO(1L, "Jan", "Jan", "Kowalski","jan@wp.pl", UserRole.USER));
         allUsers.add(new UserDTO(2L, "Anna", "Anna", "Nowak","ania@gmail.com", UserRole.ADMIN));
-        allLoans.add(LoanDTO.builder().userId(1L).bookId(101L).bookTitle("Wiedźmin").dueDate(LocalDate.now().plusDays(5)).build());
+        allLoans.add(LoanDTO.builder().userId(1L).bookId(101L).bookTitle("Wiedźmin").dueDate(LocalDate.now().plusDays(5)).overduePay(50L).build());
         if (InventoryController.masterInventory.isEmpty()) {
             InventoryController.masterInventory.add(new BookDTO(102L, "Hobbit", "Tolkien", "123", "Fantasy", "AVAILABLE", "Opis", 1937));
         }

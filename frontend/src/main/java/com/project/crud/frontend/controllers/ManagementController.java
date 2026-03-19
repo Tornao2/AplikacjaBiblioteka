@@ -51,10 +51,10 @@ public class ManagementController {
     private void loadAllLoans() {
         allLoans.add(LoanDTO.builder()
                 .userFullName("Jan Kowalski").bookTitle("Wiedźmin")
-                .dueDate(LocalDate.now().plusDays(2)).extended(false).build());
+                .dueDate(LocalDate.now().plusDays(2)).overduePay(50L).extended(false).build());
         allLoans.add(LoanDTO.builder()
                 .userFullName("Anna Nowak").bookTitle("Rok 1984")
-                .dueDate(LocalDate.now().minusDays(1)).extended(false).build());
+                .dueDate(LocalDate.now().minusDays(1)).overduePay(50L).extended(false).build());
     }
 
     private void showInfo(String msg) {

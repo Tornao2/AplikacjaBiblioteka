@@ -16,11 +16,17 @@ public class MainController {
     @FXML private Button enlegthenMenuBtn;
     @FXML private Button staffSearchBtn;
     @FXML private Button inventoryBtn;
+    @FXML private Button staffBtn;
+    @FXML private Button statBtn;
+    @FXML private Button delBtn;
+    @FXML private Button logsBtn;
+    @FXML private Button systemBtn;
     @FXML private StackPane contentArea;
     @FXML private Label welcomeLabel;
     @FXML private Label adminSectionLabel;
     @FXML private Label librarianSectionLabel;
     @FXML private Label userSectionLabel;
+
     @FXML
     public void initialize() {
         if (UserSession.getInstance() != null) {
@@ -40,8 +46,18 @@ public class MainController {
         enlegthenMenuBtn.setManaged(isStaff);
         staffSearchBtn.setVisible(isStaff);
         staffSearchBtn.setManaged(isStaff);
-        inventoryBtn.setVisible(isAdmin);
-        inventoryBtn.setManaged(isAdmin);
+        inventoryBtn.setVisible(isStaff);
+        inventoryBtn.setManaged(isStaff);
+        staffBtn.setVisible(isAdmin);
+        staffBtn.setManaged(isAdmin);
+        systemBtn.setVisible(isAdmin);
+        systemBtn.setManaged(isAdmin);
+        logsBtn.setVisible(isAdmin);
+        logsBtn.setManaged(isAdmin);
+        statBtn.setVisible(isAdmin);
+        statBtn.setManaged(isAdmin);
+        delBtn.setVisible(isAdmin);
+        delBtn.setManaged(isAdmin);
     }
 
     @FXML
@@ -96,5 +112,30 @@ public class MainController {
     @FXML
     private void showAddUser() {
         loadView("add-user-view.fxml");
+    }
+
+    @FXML
+    private void showAdminUsers() {
+        loadView("admin-users-view.fxml");
+    }
+
+    @FXML
+    private void showSettings() {
+        loadView("admin-settings-view.fxml");
+    }
+
+    @FXML
+    private void showLogs() {
+        loadView("admin-logs-view.fxml");
+    }
+
+    @FXML
+    private void showStat() {
+        loadView("admin-reports-view.fxml");
+    }
+
+    @FXML
+    private void showDel() {
+        loadView("admin-delete-users-view.fxml");
     }
 }

@@ -6,18 +6,14 @@
 
 <VBox spacing="15" styleClass="root-container" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.project.crud.frontend.controllers.CatalogController">
-
     <stylesheets>
         <URL value="@style.css" />
     </stylesheets>
-
     <Label text="Katalog Książek" styleClass="header-text"/>
-
     <HBox spacing="10" alignment="CENTER_LEFT" styleClass="stats-box">
         <TextField fx:id="searchField" promptText="Szukaj po tytule, autorze lub kategorii..."
                    HBox.hgrow="ALWAYS" styleClass="text-field" />
     </HBox>
-
     <TableView fx:id="bookTable" VBox.vgrow="ALWAYS" styleClass="table-view">
         <columns>
             <TableColumn fx:id="colId" text="ID" prefWidth="50"/>

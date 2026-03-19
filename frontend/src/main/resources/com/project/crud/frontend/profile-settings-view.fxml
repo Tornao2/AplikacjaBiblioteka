@@ -15,18 +15,25 @@
                 <ColumnConstraints prefWidth="120"/>
             </columnConstraints>
             <TextField fx:id="emailField" promptText="Nowy adres email"
-                       GridPane.columnIndex="0" maxWidth="Infinity"/>
+                       GridPane.columnIndex="0" maxWidth="Infinity" styleClass="text-field"/>
             <Button text="Aktualizuj" onAction="#handleUpdateEmail"
                     styleClass="button-primary" GridPane.columnIndex="1" maxWidth="Infinity"/>
         </GridPane>
         <Separator maxWidth="Infinity"/>
         <Label text="Zmień hasło" styleClass="stats-label"/>
         <VBox spacing="10" maxWidth="Infinity">
-            <PasswordField fx:id="currentPasswordField" promptText="Obecne hasło" maxWidth="Infinity"/>
-            <PasswordField fx:id="newPasswordField" promptText="Nowe hasło" maxWidth="Infinity"/>
-            <PasswordField fx:id="confirmPasswordField" promptText="Powtórz nowe hasło" maxWidth="Infinity"/>
+            <PasswordField fx:id="currentPasswordField" promptText="Obecne hasło" maxWidth="Infinity" styleClass="text-field"/>
+            <PasswordField fx:id="newPasswordField" promptText="Nowe hasło" maxWidth="Infinity" styleClass="text-field"/>
+            <PasswordField fx:id="confirmPasswordField" promptText="Powtórz nowe hasło" maxWidth="Infinity" styleClass="text-field"/>
             <Button text="Zmień hasło" onAction="#handleUpdatePassword"
                     styleClass="button-primary" maxWidth="Infinity"/>
+        </VBox>
+        <Separator maxWidth="Infinity"/>
+        <VBox spacing="10" maxWidth="Infinity">
+            <Label text="Usunięcie konta jest nieodwracalne. Wszystkie Twoje dane zostaną skasowane."
+                   wrapText="true" style="-fx-font-size: 14px;"/>
+            <Button text="Usuń konto" onAction="#handleDeleteAccount"
+                    styleClass="button-outline-danger" maxWidth="Infinity"/>
         </VBox>
     </VBox>
 </VBox>

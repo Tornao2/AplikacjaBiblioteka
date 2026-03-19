@@ -20,6 +20,7 @@ public class LoanDTO {
     private LocalDate dueDate;
     private LocalDate returnDate;
     private boolean extended;
+    private Long overduePay;
     public String getStatus() {
         if (returnDate != null) {
             return "ZWRÓCONA";
@@ -31,5 +32,8 @@ public class LoanDTO {
     }
     public boolean isOverdue() {
         return returnDate == null && LocalDate.now().isAfter(dueDate);
+    }
+    public double getOverduePayFormatted() {
+        return overduePay / 100.0;
     }
 }

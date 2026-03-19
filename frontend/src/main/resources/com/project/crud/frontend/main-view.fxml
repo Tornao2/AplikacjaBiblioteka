@@ -14,6 +14,16 @@
             <Label fx:id="welcomeLabel" text="Witaj!" styleClass="sidebar-welcome"/>
             <Separator styleClass="sidebar-separator"/>
             <Label fx:id="adminSectionLabel" text="Admin" styleClass="sidebar-section-label"/>
+            <Button fx:id="systemBtn" text="Ustawienia systemu" onAction="#showSettings"
+                    styleClass="sidebar-button" maxWidth="Infinity"/>
+            <Button fx:id="staffBtn" text="Zarządzanie pracownikami" onAction="#showAdminUsers"
+                    styleClass="sidebar-button" maxWidth="Infinity"/>
+            <Button fx:id="delBtn" text="Usuwanie użytkowników" onAction="#showDel"
+                    styleClass="sidebar-button" maxWidth="Infinity"/>
+            <Button fx:id="logsBtn" text="Logi systemu" onAction="#showLogs"
+                    styleClass="sidebar-button" maxWidth="Infinity"/>
+            <Button fx:id="statBtn" text="Raporty i statystyki" onAction="#showStat"
+                    styleClass="sidebar-button" maxWidth="Infinity"/>
             <Label fx:id="librarianSectionLabel" text="Bibliotekarz" styleClass="sidebar-section-label"/>
             <Button fx:id="inventoryBtn" text="Inwentarz" onAction="#showInventory"
                     styleClass="sidebar-button" maxWidth="Infinity"/>
