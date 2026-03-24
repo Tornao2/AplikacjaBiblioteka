@@ -57,13 +57,13 @@ public class ProfileController {
         if (emailField.getScene() != null) {
             dialogPane.getStylesheets().addAll(emailField.getScene().getStylesheets());
         }
-        dialogPane.getStyleClass().add("root-container");
+        dialogPane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
         Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
         okButton.setText("Usuń bezpowrotnie");
         okButton.getStyleClass().add("button-primary");
         Button cancelButton = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
         cancelButton.setText("Anuluj");
-        cancelButton.getStyleClass().add("button-danger-outline");
+        cancelButton.getStyleClass().add("button-outline-danger");
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 System.out.println("Konto zostało usunięte.");

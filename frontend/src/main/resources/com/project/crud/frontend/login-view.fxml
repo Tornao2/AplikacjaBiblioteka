@@ -4,7 +4,7 @@
 
 <StackPane stylesheets="@style.css" xmlns:fx="http://javafx.com/fxml"
            fx:controller="com.project.crud.frontend.controllers.LoginController">
-  <VBox alignment="CENTER" spacing="25.0" maxWidth="400" maxHeight="500" styleClass="login-card">
+  <VBox alignment="CENTER" spacing="15.0" maxWidth="400" maxHeight="400" styleClass="login-card">
     <VBox alignment="CENTER" spacing="5">
       <Label text="System Zarządzania &#10;Biblioteką" textAlignment="CENTER" styleClass="header-text"/>
     </VBox>

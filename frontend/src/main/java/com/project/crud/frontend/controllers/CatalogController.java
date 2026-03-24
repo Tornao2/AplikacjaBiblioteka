@@ -29,6 +29,28 @@ public class CatalogController {
         colYear.setCellValueFactory(new PropertyValueFactory<>("releaseYear"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         colDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
+        colDescription.setCellFactory(tc -> new TableCell<>() {
+            private final Label label = new Label();
+            {
+                label.setWrapText(true);
+                label.maxWidthProperty().bind(tc.widthProperty().subtract(15));
+                label.getStyleClass().add("text");
+                setGraphic(label);
+            }
+
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                    label.setText(null);
+                } else {
+                    label.setText(item);
+                    setGraphic(label);
+                    label.textFillProperty().bind(textFillProperty());
+                }
+            }
+        });
         loadMockData();
         setupSearch();
     }

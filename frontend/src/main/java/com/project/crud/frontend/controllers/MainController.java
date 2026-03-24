@@ -17,6 +17,7 @@ public class MainController {
     @FXML private Button staffSearchBtn;
     @FXML private Button inventoryBtn;
     @FXML private Button staffBtn;
+    @FXML private Button managBtn;
     @FXML private Button statBtn;
     @FXML private Button delBtn;
     @FXML private Button logsBtn;
@@ -58,6 +59,8 @@ public class MainController {
         statBtn.setManaged(isAdmin);
         delBtn.setVisible(isAdmin);
         delBtn.setManaged(isAdmin);
+        managBtn.setVisible(isAdmin);
+        managBtn.setManaged(isAdmin);
     }
 
     @FXML
@@ -137,5 +140,10 @@ public class MainController {
     @FXML
     private void showDel() {
         loadView("admin-delete-users-view.fxml");
+    }
+
+    @FXML
+    private void showMang() {
+        loadView("admin-manag-view.fxml");
     }
 }

@@ -44,6 +44,9 @@
     -fx-border-color: transparent transparent #d2d2d2 transparent;
     -fx-border-width: 0 0 2 0;
     -fx-padding: 8 5;
+    -fx-pref-height: 50px;
+        -fx-min-height: 50px;
+        -fx-max-height: 50px;
     -fx-font-size: 14px;
 }
 
@@ -52,33 +55,39 @@
     -fx-background-color: #f0f5f0;
 }
 
-.button-primary, .button-outline-danger {
+.button-primary, .button-outline-danger, .button-primary-table, .button-outline-danger-table {
     -fx-font-weight: bold;
     -fx-background-radius: 8;
-    -fx-padding: 12 20;
+    -fx-padding: 10 20;
     -fx-cursor: hand;
-    -fx-margin: 20;
 }
 
-.button-primary {
+.button-primary, .button-primary-table{
     -fx-background-color: -fx-primary;
     -fx-text-fill: white;
+    -fx-border-color: transparent;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+}
+
+.button-outline-danger, .button-outline-danger-table {
+    -fx-background-color: #f4f7f6;
+    -fx-border-color: -fx-danger;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-text-fill: -fx-danger;
+    -fx-background-radius: 10;
+    -fx-background-insets: 0;
+}
+
+.button-primary-table, .button-outline-danger-table {
+    -fx-padding: 3 8;
 }
 
 .button-primary:hover {
     -fx-background-color:
     -fx-primary-dark;
     -fx-effect: dropshadow(gaussian, rgba(45,90,39,0.3), 8, 0, 0, 3);
-}
-
-.button-outline-danger {
-    -fx-background-color: #f4f7f6;
-    -fx-border-color: -fx-danger;
-    -fx-border-width: 2;
-    -fx-border-radius: 8;
-    -fx-background-radius: 10;
-    -fx-background-insets: 0;
-    -fx-text-fill: -fx-danger;
 }
 
 .button-outline-danger:hover {
@@ -139,6 +148,37 @@
     -fx-primary;
     -fx-padding: 20;
     -fx-min-width: 220;
+}
+
+.wrapped-text-style {
+    -fx-fill: -fx-text-background-color;
+    -fx-font-size: 13px;
+}
+
+.sidebar-scroll {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+
+.sidebar-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.sidebar-scroll .scroll-bar:vertical {
+    -fx-background-color: transparent;
+    -fx-width: 5px;
+}
+
+.sidebar-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-background-radius: 5px;
+}
+
+.sidebar-scroll .scroll-bar:vertical .increment-button,
+.sidebar-scroll .scroll-bar:vertical .decrement-button {
+    -fx-padding: 0;
 }
 
 .sidebar-welcome {

@@ -9,7 +9,7 @@
     <stylesheets>
         <URL value="@style.css" />
     </stylesheets>
-    <Label text="Zatwierdzanie Przedłużeń" styleClass="header-text"/>
+    <Label text="Zatwierdzanie przedłużeń" styleClass="header-text"/>
     <TableView fx:id="requestTable" VBox.vgrow="ALWAYS" styleClass="table-view">
         <columns>
             <TableColumn fx:id="colUser" text="Użytkownik" prefWidth="150"/>
@@ -23,7 +23,7 @@
     <HBox spacing="10">
         <Button fx:id="approveBtn" text="Zatwierdź przedłużenie (+7 dni)"
                 onAction="#handleApprove" styleClass="button-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-        <Button text="Odrzuć prośbę" onAction="#handleReject"
+        <Button fx:id="noBtn" text="Odrzuć prośbę" onAction="#handleReject"
                 styleClass="button-outline-danger" prefWidth="150"/>
     </HBox>
 </VBox>

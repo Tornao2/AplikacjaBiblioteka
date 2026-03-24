@@ -5,7 +5,7 @@
 
 <VBox spacing="20" styleClass="root-container" maxWidth="Infinity" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.project.crud.frontend.controllers.AddUserController">
-    <Label text="Rejestracja Nowego Czytelnika" styleClass="header-text"/>
+    <Label text="Dodaj czytelnika" styleClass="header-text"/>
     <VBox spacing="25" styleClass="form-container" maxWidth="Infinity">
         <GridPane hgap="15" vgap="15" maxWidth="Infinity">
             <columnConstraints>

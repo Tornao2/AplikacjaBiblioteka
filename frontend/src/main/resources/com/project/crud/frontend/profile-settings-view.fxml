@@ -6,7 +6,7 @@
 <VBox spacing="20" styleClass="root-container" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.project.crud.frontend.controllers.ProfileController"
       maxWidth="Infinity">
-    <Label text="Ustawienia Profilu" styleClass="header-text"/>
+    <Label text="Ustawienia profilu" styleClass="header-text"/>
     <VBox spacing="20" styleClass="form-container" maxWidth="Infinity">
         <Label text="Zmień adres Email" styleClass="stats-label"/>
         <GridPane hgap="10" vgap="10" maxWidth="Infinity">

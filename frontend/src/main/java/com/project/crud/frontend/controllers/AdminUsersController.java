@@ -72,13 +72,27 @@ public class AdminUsersController {
 
     private void setupActions() {
         colActions.setCellFactory(param -> new TableCell<>() {
+            private final Button editBtn = new Button("Edytuj");
             private final Button demoteBtn = new Button("Zwolnij");
-            private final HBox container = new HBox(10, demoteBtn);
+            private final HBox container = new HBox(10, editBtn, demoteBtn);
             {
+                editBtn.getStyleClass().add("button-primary");
+                editBtn.setPrefHeight(25);
+                editBtn.setMaxHeight(Region.USE_PREF_SIZE);
+                editBtn.setStyle("-fx-padding: 2 10 2 10; -fx-font-size: 11px;");
+
                 demoteBtn.getStyleClass().add("button-outline-danger");
                 demoteBtn.setPrefHeight(25);
                 demoteBtn.setMaxHeight(Region.USE_PREF_SIZE);
-                demoteBtn.setStyle("-fx-padding: 2 10 2 10;");
+                demoteBtn.setStyle("-fx-padding: 2 10 2 10; -fx-font-size: 11px;");
+
+                container.setAlignment(javafx.geometry.Pos.CENTER);
+
+                editBtn.setOnAction(event -> {
+                    StaffDTO staff = getTableView().getItems().get(getIndex());
+                    handleEditStaff(staff);
+                });
+
                 demoteBtn.setOnAction(event -> {
                     StaffDTO staff = getTableView().getItems().get(getIndex());
                     handleDemote(staff);
@@ -87,13 +101,63 @@ public class AdminUsersController {
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    setGraphic(container);
-                }
+                setGraphic(empty ? null : container);
             }
         });
+    }
+
+    private void handleEditStaff(StaffDTO staff) {
+        Dialog<StaffDTO> dialog = new Dialog<>();
+        dialog.setTitle("Edycja Pracownika");
+        dialog.setHeaderText("Zaktualizuj dane pracownika: " + staff.getUser().getUsername());
+
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
+        dialogPane.getStyleClass().add("root-container");
+
+        ButtonType saveButtonType = new ButtonType("Zaktualizuj", ButtonBar.ButtonData.OK_DONE);
+        dialogPane.getButtonTypes().addAll(saveButtonType, ButtonType.CANCEL);
+        (dialogPane.lookupButton(saveButtonType)).getStyleClass().add("button-primary");
+        (dialogPane.lookupButton(ButtonType.CANCEL)).getStyleClass().add("button-outline-danger");
+        TextField fName = new TextField(staff.getUser().getFirstName());
+        TextField lName = new TextField(staff.getUser().getLastName());
+        TextField email = new TextField(staff.getUser().getEmail());
+        TextField phone = new TextField(staff.getPhoneNumber());
+        TextField salary = new TextField(String.valueOf(staff.getSalary()));
+        ComboBox<UserRole> roleCombo = new ComboBox<>(FXCollections.observableArrayList(UserRole.LIBRARIAN, UserRole.ADMIN));
+        roleCombo.setValue(staff.getUser().getRole());
+        roleCombo.setMaxWidth(Double.MAX_VALUE);
+        DatePicker hireDate = new DatePicker(staff.getHireDate());
+        hireDate.setMaxWidth(Double.MAX_VALUE);
+        GridPane grid = new GridPane();
+        grid.setHgap(15); grid.setVgap(12);
+        grid.setPadding(new Insets(20, 30, 20, 30));
+        grid.getStyleClass().add("form-container");
+        grid.add(new Label("Imię:"), 0, 0);      grid.add(fName, 1, 0);
+        grid.add(new Label("Nazwisko:"), 0, 1);   grid.add(lName, 1, 1);
+        grid.add(new Label("Email:"), 0, 2);     grid.add(email, 1, 2);
+        grid.add(new Label("Rola:"), 0, 3);      grid.add(roleCombo, 1, 3);
+        grid.add(new Label("Telefon:"), 0, 4);   grid.add(phone, 1, 4);
+        grid.add(new Label("Pensja:"), 0, 5);    grid.add(salary, 1, 5);
+        grid.add(new Label("Data:"), 0, 6);      grid.add(hireDate, 1, 6);
+        dialogPane.setContent(grid);
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == saveButtonType) {
+                try {
+                    staff.getUser().setFirstName(fName.getText());
+                    staff.getUser().setLastName(lName.getText());
+                    staff.getUser().setEmail(email.getText());
+                    staff.getUser().setRole(roleCombo.getValue());
+                    staff.setPhoneNumber(phone.getText());
+                    staff.setSalary(Double.parseDouble(salary.getText().replace(",", ".")));
+                    staff.setHireDate(hireDate.getValue());
+                    return staff;
+                } catch (Exception e) { return null; }
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(updatedStaff -> staffTable.refresh());
     }
 
     private void handleDemote(StaffDTO staff) {

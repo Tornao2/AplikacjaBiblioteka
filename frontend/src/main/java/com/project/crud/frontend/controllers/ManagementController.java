@@ -14,6 +14,7 @@ public class ManagementController {
     @FXML private TableColumn<LoanDTO, String> colUser, colBook;
     @FXML private TableColumn<LoanDTO, LocalDate> colCurrentDue;
     @FXML private Button approveBtn;
+    @FXML private Button noBtn;
 
     private final ObservableList<LoanDTO> allLoans = FXCollections.observableArrayList();
 
@@ -25,6 +26,7 @@ public class ManagementController {
         loadAllLoans();
         requestTable.setItems(allLoans);
         approveBtn.disableProperty().bind(requestTable.getSelectionModel().selectedItemProperty().isNull());
+        noBtn.disableProperty().bind(requestTable.getSelectionModel().selectedItemProperty().isNull());
     }
 
     @FXML
