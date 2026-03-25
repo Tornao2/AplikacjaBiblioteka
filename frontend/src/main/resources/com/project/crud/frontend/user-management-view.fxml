@@ -38,13 +38,13 @@
     <Button fx:id="returnBookBtn" text="Przyjmij zwrot książki"
             maxWidth="Infinity" onAction="#handleReturnAction" styleClass="button-outline-danger"/>
     <Separator/>
-    <VBox spacing="10" styleClass="stats-box">
-        <Label text="Wypożycz nową książkę wybranemu użytkownikowi" styleClass="stats-label"/>
-        <HBox spacing="10" alignment="CENTER_LEFT">
-            <ComboBox fx:id="availableBooksCombo" promptText="Wybierz dostępną książkę..."
-                      HBox.hgrow="ALWAYS" maxWidth="Infinity" styleClass="combo-box"/>
-            <Button fx:id="addLoanBtn" text="Wypożycz" onAction="#handleNewLoan"
-                    styleClass="button-primary" />
-        </HBox>
-    </VBox>
+    <HBox spacing="15" alignment="CENTER">
+        <Button fx:id="openPickerBtn"
+                text="Wyszukaj książke do wypożyczenia."
+                onAction="#handleOpenBookPicker"
+                maxWidth="Infinity"
+                HBox.hgrow="ALWAYS"
+                styleClass="button-primary"
+                prefHeight="45"/>
+    </HBox>
 </VBox>

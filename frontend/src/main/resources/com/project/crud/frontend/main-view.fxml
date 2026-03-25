@@ -30,10 +30,8 @@
             <Label fx:id="librarianSectionLabel" text="Bibliotekarz" styleClass="sidebar-section-label"/>
             <Button fx:id="inventoryBtn" text="Inwentarz" onAction="#showInventory"
                     styleClass="sidebar-button" maxWidth="Infinity"/>
-            <Button text="Dodaj czytelnika" onAction="#showAddUser" styleClass="sidebar-button" maxWidth="Infinity"/>
+            <Button fx:id="addBtn" text="Dodaj czytelnika" onAction="#showAddUser" styleClass="sidebar-button" maxWidth="Infinity"/>
             <Button fx:id="staffSearchBtn" text="Zarządzanie użytkownikami" onAction="#showUserManagement"
-                    styleClass="sidebar-button" maxWidth="Infinity"/>
-            <Button fx:id="enlegthenMenuBtn" text="Prośby o przedłużenie" onAction="#showManagement"
                     styleClass="sidebar-button" maxWidth="Infinity"/>
 
             <Label fx:id="userSectionLabel" text="Użytkownik" styleClass="sidebar-section-label"/>

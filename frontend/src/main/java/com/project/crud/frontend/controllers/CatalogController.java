@@ -37,7 +37,6 @@ public class CatalogController {
                 label.getStyleClass().add("text");
                 setGraphic(label);
             }
-
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -51,6 +50,7 @@ public class CatalogController {
                 }
             }
         });
+        bookTable.setPlaceholder(new Label("Brak dostępnych książek w katalogu."));
         loadMockData();
         setupSearch();
     }

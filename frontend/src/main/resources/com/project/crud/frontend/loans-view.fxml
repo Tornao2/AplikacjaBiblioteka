@@ -9,7 +9,7 @@
     <stylesheets>
         <URL value="@style.css" />
     </stylesheets>
-    <Label text="Prośby o przedłużenie" styleClass="header-text"/>
+    <Label text="Moje wypożyczenia" styleClass="header-text"/>
     <HBox spacing="30" styleClass="stats-box">
         <Label fx:id="totalLoansLabel" text="Wszystkie: 0" styleClass="stats-label"/>
         <Label fx:id="overdueCountLabel" text="Po terminie: 0" styleClass="stats-overdue"/>

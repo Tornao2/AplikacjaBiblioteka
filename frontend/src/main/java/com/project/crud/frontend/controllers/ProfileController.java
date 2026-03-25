@@ -24,9 +24,9 @@ public class ProfileController {
         String newEmail = emailField.getText();
         if (newEmail != null && newEmail.contains("@") && newEmail.length() > 5) {
             UserSession.getInstance().setUserEmail(newEmail);
-            showAlert("Sukces", "Adres email został zaktualizowany.");
+            showAlert("Adres email został zaktualizowany.", Alert.AlertType.INFORMATION);
         } else {
-            showAlert("Błąd", "Podaj poprawny adres email.");
+            showAlert("Podaj poprawny adres email.", Alert.AlertType.ERROR);
         }
     }
 
@@ -36,14 +36,14 @@ public class ProfileController {
         String next = newPasswordField.getText();
         String confirm = confirmPasswordField.getText();
         if (current.isEmpty() || next.isEmpty()) {
-            showAlert("Błąd", "Pola haseł nie mogą być puste.");
+            showAlert("Pola haseł nie mogą być puste.", Alert.AlertType.ERROR);
             return;
         }
         if (!next.equals(confirm)) {
-            showAlert("Błąd", "Nowe hasła nie są identyczne.");
+            showAlert("Nowe hasła nie są identyczne.", Alert.AlertType.ERROR);
             return;
         }
-        showAlert("Sukces", "Hasło zostało zmienione.");
+        showAlert( "Hasło zostało zmienione.", Alert.AlertType.INFORMATION);
         clearPasswordFields();
     }
 
@@ -66,7 +66,6 @@ public class ProfileController {
         cancelButton.getStyleClass().add("button-outline-danger");
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                System.out.println("Konto zostało usunięte.");
                 UserSession.logout();
                 redirectToLogin();
             }
@@ -84,7 +83,7 @@ public class ProfileController {
             stage.centerOnScreen();
             stage.show();
         } catch (java.io.IOException e) {
-            showAlert("Błąd", "Nie udało się powrócić do ekranu logowania.");
+            showAlert("Nie udało się powrócić do ekranu logowania.", Alert.AlertType.ERROR);
             e.printStackTrace();
         }
     }
@@ -95,13 +94,20 @@ public class ProfileController {
         confirmPasswordField.clear();
     }
 
-    private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, content);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
+    private void showAlert(String content, Alert.AlertType alertType) {
+        Alert alert = new Alert(alertType, content);
         DialogPane dialogPane = alert.getDialogPane();
-        if (emailField.getScene() != null) {
-            dialogPane.getStylesheets().addAll(emailField.getScene().getStylesheets());
+        dialogPane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
+        dialogPane.getStyleClass().add("root-container");
+        if (alertType == Alert.AlertType.INFORMATION){
+            alert.setTitle("Sukces");
+        }
+        alert.setHeaderText(null);
+        Button okButton = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
+        if (okButton != null) {
+            okButton.getStyleClass().add("button-primary");
+            okButton.applyCss();
+            okButton.setText("Rozumiem");
         }
         alert.showAndWait();
     }

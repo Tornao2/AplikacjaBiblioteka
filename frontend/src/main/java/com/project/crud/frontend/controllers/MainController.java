@@ -13,11 +13,11 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class MainController {
-    @FXML private Button enlegthenMenuBtn;
     @FXML private Button staffSearchBtn;
     @FXML private Button inventoryBtn;
     @FXML private Button staffBtn;
     @FXML private Button managBtn;
+    @FXML private Button addBtn;
     @FXML private Button statBtn;
     @FXML private Button delBtn;
     @FXML private Button logsBtn;
@@ -43,8 +43,6 @@ public class MainController {
         librarianSectionLabel.setManaged(isStaff);
         userSectionLabel.setVisible(isStaff);
         userSectionLabel.setManaged(isStaff);
-        enlegthenMenuBtn.setVisible(isStaff);
-        enlegthenMenuBtn.setManaged(isStaff);
         staffSearchBtn.setVisible(isStaff);
         staffSearchBtn.setManaged(isStaff);
         inventoryBtn.setVisible(isStaff);
@@ -61,6 +59,8 @@ public class MainController {
         delBtn.setManaged(isAdmin);
         managBtn.setVisible(isAdmin);
         managBtn.setManaged(isAdmin);
+        addBtn.setVisible(isStaff);
+        addBtn.setManaged(isStaff);
     }
 
     @FXML
@@ -90,11 +90,6 @@ public class MainController {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/login-view.fxml"));
         stage.setScene(new Scene(loader.load(), 1200, 900));
         stage.setTitle("Logowanie");
-    }
-
-    @FXML
-    public void showManagement() {
-        loadView("management-view.fxml");
     }
 
     @FXML

@@ -11,12 +11,13 @@ import javafx.scene.layout.GridPane;
 public class InventoryController {
     @FXML private TextField titleField, authorField, isbnField, yearField;
     @FXML private ComboBox<String> categoryCombo;
-    @FXML private TextArea descriptionArea;
+    @FXML private TextField descriptionArea;
     @FXML private TableView<BookDTO> inventoryTable;
     @FXML private TableColumn<BookDTO, Long> colId;
     @FXML private TableColumn<BookDTO, String> colTitle, colAuthor, colStatus, colIsbn, colCategory, colDescription;
     @FXML private TableColumn<BookDTO, Integer> colYear;
     @FXML private Button deleteBtn;
+    @FXML private Button addBtn;
     @FXML private TableColumn<BookDTO, Void> colActions;
 
     static final ObservableList<BookDTO> masterInventory = FXCollections.observableArrayList();
@@ -31,6 +32,27 @@ public class InventoryController {
         colYear.setCellValueFactory(new PropertyValueFactory<>("releaseYear"));
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         colDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
+        colDescription.setCellFactory(tc -> new TableCell<>() {
+            private final Label label = new Label();
+            {
+                label.setWrapText(true);
+                label.maxWidthProperty().bind(tc.widthProperty().subtract(15));
+                label.getStyleClass().add("text");
+                setGraphic(label);
+            }
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                    label.setText(null);
+                } else {
+                    label.setText(item);
+                    setGraphic(label);
+                    label.textFillProperty().bind(textFillProperty());
+                }
+            }
+        });
         categoryCombo.setItems(FXCollections.observableArrayList(
                 "Fantasy", "Kryminał", "Dystopia", "Nauka", "Biografia", "Inne"
         ));
@@ -56,6 +78,14 @@ public class InventoryController {
         inventoryTable.setItems(masterInventory);
         deleteBtn.disableProperty().bind(inventoryTable.getSelectionModel().selectedItemProperty().isNull());
         inventoryTable.setPlaceholder(new Label("Brak książek w systemie."));
+        addBtn.disableProperty().bind(
+                titleField.textProperty().isEmpty()
+                        .or(authorField.textProperty().isEmpty())
+                        .or(yearField.textProperty().isEmpty())
+                        .or(categoryCombo.valueProperty().isNull())
+                        .or(isbnField.textProperty().isNull())
+                        .or(descriptionArea.textProperty().isNull())
+        );
     }
 
     private void showEditDialog(BookDTO book) {
@@ -76,11 +106,17 @@ public class InventoryController {
         TextField editYear = new TextField(String.valueOf(book.getReleaseYear()));
         ComboBox<String> editCategory = new ComboBox<>(categoryCombo.getItems());
         editCategory.setValue(book.getCategory());
-        TextArea editDesc = new TextArea(book.getDescription());
-        editDesc.setWrapText(true);
-        editDesc.setPrefRowCount(3);
+        TextField editDesc = new TextField(book.getDescription());
         Button saveBtn = (Button) dialogPane.lookupButton(saveButtonType);
         saveBtn.getStyleClass().add("button-primary");
+        saveBtn.disableProperty().bind(
+                editTitle.textProperty().isEmpty()
+                        .or(editAuthor.textProperty().isEmpty())
+                        .or(editYear.textProperty().isEmpty())
+                        .or(editCategory.valueProperty().isNull())
+                        .or(editIsbn.textProperty().isNull())
+                        .or(editDesc.textProperty().isNull())
+        );
         Button cancelBtn = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
         cancelBtn.getStyleClass().add("button-outline-danger");
         grid.add(new Label("Tytuł:"), 0, 0);   grid.add(editTitle, 1, 0);
@@ -122,11 +158,11 @@ public class InventoryController {
             masterInventory.add(newBook);
             clearFields();
         } catch (NumberFormatException e) {
-            showAlert("Błąd formatu", "Rok wydania musi być liczbą!");
+            showAlert("Rok wydania musi być liczbą!");
         } catch (IllegalArgumentException e) {
-            showAlert("Błąd walidacji", e.getMessage());
+            showAlert("Zły typ danych");
         } catch (Exception e) {
-            showAlert("Błąd", "Wystąpił nieoczekiwany błąd: " + e.getMessage());
+            showAlert("Wystąpił nieoczekiwany błąd: " + e.getMessage());
         }
     }
 
@@ -141,7 +177,7 @@ public class InventoryController {
         BookDTO selected = inventoryTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
             if ("RENTED".equals(selected.getStatus())) {
-                showAlert("Błąd", "Nie można usunąć książki, która jest obecnie wypożyczona!");
+                showAlert("Nie można usunąć książki, która jest obecnie wypożyczona!");
             } else {
                 masterInventory.remove(selected);
             }
@@ -157,11 +193,18 @@ public class InventoryController {
         categoryCombo.getSelectionModel().clearSelection();
     }
 
-    private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle(title);
+    private void showAlert(String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, content);
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
+        dialogPane.getStyleClass().add("root-container");
         alert.setHeaderText(null);
-        alert.setContentText(content);
+        Button okButton = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
+        if (okButton != null) {
+            okButton.getStyleClass().add("button-primary");
+            okButton.applyCss();
+            okButton.setText("Rozumiem");
+        }
         alert.showAndWait();
     }
 }

@@ -32,6 +32,7 @@ public class LoansController {
         });
         loadMockLoans();
         loanTable.setItems(loanData);
+        loanTable.setPlaceholder(new Label("Brak wypożyczeń."));
         setupRowFactory();
         setupProlongButtonLogic();
         updateStatistics();
@@ -64,13 +65,7 @@ public class LoansController {
 
     private void setupProlongButtonLogic() {
         prolongBtn.setDisable(true);
-        loanTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if (newSelection != null && newSelection.getReturnDate() == null) {
-                prolongBtn.setDisable(newSelection.isExtended());
-            } else {
-                prolongBtn.setDisable(true);
-            }
-        });
+        loanTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> prolongBtn.setDisable(newSelection == null || newSelection.getReturnDate() != null || newSelection.isExtended()));
     }
 
     @FXML
@@ -82,6 +77,7 @@ public class LoansController {
             loanTable.refresh();
             updateStatistics();
             showAlert();
+            loanTable.getSelectionModel().clearSelection();
         }
     }
 
@@ -92,9 +88,18 @@ public class LoansController {
     }
 
     private void showAlert() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Przedłużono termin o 7 dni.");
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Przedłużono termin.");
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
+        dialogPane.getStyleClass().add("root-container");
         alert.setTitle("Sukces");
         alert.setHeaderText(null);
+        Button okButton = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
+        if (okButton != null) {
+            okButton.getStyleClass().add("button-primary");
+            okButton.applyCss();
+            okButton.setText("Rozumiem");
+        }
         alert.showAndWait();
     }
 }

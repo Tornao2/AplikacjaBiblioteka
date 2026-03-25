@@ -33,11 +33,11 @@
             <ComboBox fx:id="categoryCombo" promptText="Kategoria"
                       GridPane.columnIndex="0" GridPane.rowIndex="2"
                       maxWidth="Infinity"/>
-            <TextArea fx:id="descriptionArea" promptText="Opis książki..."
+            <TextField fx:id="descriptionArea" promptText="Opis książki..."
                       GridPane.columnIndex="0" GridPane.rowIndex="3"
                       GridPane.columnSpan="2" maxWidth="Infinity"
-                      prefHeight="80" wrapText="true"/>
-            <Button text="Dodaj do systemu" onAction="#handleAddBook"
+                      prefHeight="80"/>
+            <Button fx:id="addBtn" text="Dodaj do systemu" onAction="#handleAddBook"
                     GridPane.columnIndex="2" GridPane.rowIndex="0" GridPane.rowSpan="4"
                     maxWidth="Infinity" maxHeight="Infinity" styleClass="button-primary"/>
         </GridPane>
@@ -47,12 +47,12 @@
             <TableColumn fx:id="colId" text="ID" prefWidth="50"/>
             <TableColumn fx:id="colTitle" text="Tytuł" prefWidth="120"/>
             <TableColumn fx:id="colAuthor" text="Autor" prefWidth="140"/>
-            <TableColumn fx:id="colIsbn" text="ISBN" prefWidth="100"/>
+            <TableColumn fx:id="colIsbn" text="ISBN" prefWidth="80"/>
             <TableColumn fx:id="colCategory" text="Kategoria" prefWidth="100"/>
-            <TableColumn fx:id="colYear" text="Rok" prefWidth="50" />
+            <TableColumn fx:id="colYear" text="Rok" prefWidth="60" />
             <TableColumn fx:id="colStatus" text="Status" prefWidth="90"/>
-            <TableColumn fx:id="colDescription" text="Opis" prefWidth="200"/>
-            <TableColumn fx:id="colActions" text="Akcje" prefWidth="120"/>
+            <TableColumn fx:id="colDescription" text="Opis" prefWidth="235"/>
+            <TableColumn fx:id="colActions" text="Akcje" prefWidth="95"/>
         </columns>
     </TableView>
     <Button fx:id="deleteBtn" text="Usuń zaznaczoną książkę" onAction="#handleDeleteBook"

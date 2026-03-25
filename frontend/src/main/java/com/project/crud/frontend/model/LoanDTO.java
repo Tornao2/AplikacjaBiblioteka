@@ -21,12 +21,16 @@ public class LoanDTO {
     private LocalDate returnDate;
     private boolean extended;
     private Long overduePay;
+
     public String getStatus() {
         if (returnDate != null) {
             return "ZWRÓCONA";
         }
         if (isOverdue()) {
             return "PO TERMINIE";
+        }
+        if (extended){
+            return "TERMIN PRZEDŁUŻONY";
         }
         return "AKTYWNE";
     }

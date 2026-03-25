@@ -29,9 +29,9 @@
                            GridPane.rowIndex="5" GridPane.columnIndex="1" maxWidth="Infinity"/>
         </GridPane>
         <HBox spacing="10" >
-            <Button text="Zarejestruj Czytelnika" onAction="#handleRegister"
+            <Button fx:id="registerBtn" text="Zarejestruj Czytelnika" onAction="#handleRegister"
                     styleClass="button-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
-            <Button text="Wyczyść" onAction="#handleClear" styleClass="button-outline-danger"/>
+            <Button fx:id="clearBtn" text="Wyczyść" onAction="#handleClear" styleClass="button-outline-danger"/>
         </HBox>
     </VBox>
 </VBox>
