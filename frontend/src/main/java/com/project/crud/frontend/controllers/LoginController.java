@@ -4,6 +4,7 @@ import com.project.crud.frontend.auth.UserSession;
 import com.project.crud.frontend.model.UserRole;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import javafx.scene.Scene;
 import javafx.fxml.FXMLLoader;
@@ -13,6 +14,12 @@ public class LoginController {
     @FXML private TextField usernameField;
     @FXML private PasswordField passwordField;
     @FXML private Label errorLabel;
+    @FXML private HBox errorCont;
+
+    @FXML
+    private void initialize() {
+        errorCont.setVisible(false);
+    }
 
     @FXML
     private void handleLogin() {
@@ -29,6 +36,7 @@ public class LoginController {
             loadMainView();
         } else {
             errorLabel.setText("Błędne dane!");
+            errorCont.setVisible(true);
         }
     }
 

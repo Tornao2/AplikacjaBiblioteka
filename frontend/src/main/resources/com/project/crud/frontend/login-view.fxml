@@ -13,6 +13,11 @@
       <PasswordField fx:id="passwordField" promptText="Hasło" />
     </VBox>
     <Button text="ZALOGUJ SIĘ" onAction="#handleLogin" maxWidth="Infinity" styleClass="button-primary"/>
-    <Label fx:id="errorLabel" style="-fx-text-fill: #c0392b; -fx-font-size: 24px;"/>
+    <HBox fx:id="errorCont" styleClass="form-container" style="-fx-border-color: -fx-danger; -fx-border-width: 0 0 0 5;"
+          spacing="20" alignment="CENTER_LEFT">
+      <VBox spacing="5" HBox.hgrow="ALWAYS">
+        <Label fx:id="errorLabel" style="-fx-text-fill: #c0392b; -fx-font-size: 24px;"/>
+      </VBox>
+    </HBox>
   </VBox>
 </StackPane>

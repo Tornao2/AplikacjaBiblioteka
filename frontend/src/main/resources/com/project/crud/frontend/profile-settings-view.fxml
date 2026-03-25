@@ -30,8 +30,13 @@
         </VBox>
         <Separator maxWidth="Infinity"/>
         <VBox spacing="10" maxWidth="Infinity">
-            <Label text="Usunięcie konta jest nieodwracalne. Wszystkie Twoje dane zostaną skasowane."
-                   wrapText="true" style="-fx-font-size: 14px;"/>
+            <HBox styleClass="form-container" style="-fx-border-color: -fx-danger; -fx-border-width: 0 0 0 5;"
+                  spacing="20" alignment="CENTER_LEFT">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Usunięcie użytkownika spowoduje bezpowrotne skasowanie jego danych oraz historii."
+                           wrapText="true" styleClass="stats-label" style="-fx-text-fill: #7f8c8d;"/>
+                </VBox>
+            </HBox>
             <Button text="Usuń konto" onAction="#handleDeleteAccount"
                     styleClass="button-outline-danger" maxWidth="Infinity"/>
         </VBox>
