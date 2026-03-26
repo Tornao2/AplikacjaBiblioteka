@@ -16,9 +16,7 @@ public class AdminDeleteUsersController {
     @FXML private TextField searchField;
     @FXML private TableView<UserDTO> usersTable;
     @FXML private TableColumn<UserDTO, Long> colId;
-    @FXML private TableColumn<UserDTO, String> colUsername;
-    @FXML private TableColumn<UserDTO, String> colEmail;
-    @FXML private TableColumn<UserDTO, String> colRole;
+    @FXML private TableColumn<UserDTO, String> colUsername, colEmail, colRole;
     @FXML private TableColumn<UserDTO, Void> colActions;
 
     private final ObservableList<UserDTO> masterData = FXCollections.observableArrayList();
@@ -31,15 +29,12 @@ public class AdminDeleteUsersController {
     }
 
     private void setupTableColumns() {
-        colId.setCellValueFactory(cellData -> new SimpleObjectProperty<>(cellData.getValue().getId()));
-        colUsername.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getUsername()));
-        colEmail.setCellValueFactory(cellData -> new SimpleStringProperty(cellData.getValue().getEmail()));
-        colRole.setCellValueFactory(cellData -> {
-            UserRole role = cellData.getValue().getRole();
-            return new SimpleStringProperty(role != null ? role.name() : "BRAK");
-        });
-        colId.setStyle("-fx-alignment: CENTER;");
-        colRole.setStyle("-fx-alignment: CENTER;");
+        colId.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getId()));
+        colUsername.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getUsername()));
+        colEmail.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getEmail()));
+        colRole.setCellValueFactory(d -> new SimpleStringProperty(
+                d.getValue().getRole() != null ? d.getValue().getRole().name() : "BRAK"));
+
         setupActions();
     }
 
@@ -48,66 +43,59 @@ public class AdminDeleteUsersController {
             private final Button deleteBtn = new Button("Usuń");
             private final HBox container = new HBox(deleteBtn);
             {
-                deleteBtn.getStyleClass().add("button-outline-danger");
+                deleteBtn.getStyleClass().add("button-outline-danger-table");
                 deleteBtn.setPrefHeight(25);
-                deleteBtn.setMaxHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
-                deleteBtn.setStyle("-fx-padding: 2 12 2 12;");
                 container.setAlignment(Pos.CENTER);
-                deleteBtn.setOnAction(event -> {
-                    UserDTO user = getTableView().getItems().get(getIndex());
-                    handleDeleteRequest(user);
-                });
+                deleteBtn.setOnAction(e -> handleDeleteRequest(getTableView().getItems().get(getIndex())));
             }
             @Override
             protected void updateItem(Void item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
-                } else {
-                    setGraphic(container);
-                }
-            }
-        });
-    }
-
-    private void loadInitialData() {
-        masterData.add(UserDTO.builder().id(1L).username("admin_super").email("admin@library.com").role(UserRole.ADMIN).build());
-        masterData.add(UserDTO.builder().id(2L).username("jan_nowak").email("j.nowak@gmail.com").role(UserRole.USER).build());
-        masterData.add(UserDTO.builder().id(3L).username("bibliotekarz1").email("staff@library.com").role(UserRole.LIBRARIAN).build());
-    }
-
-    private void handleDeleteRequest(UserDTO user) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Potwierdzenie usunięcia");
-        alert.setHeaderText("Usunąć użytkownika " + user.getUsername() + "?");
-        alert.setContentText("Ta operacja jest nieodwracalna.");
-        DialogPane dialogPane = alert.getDialogPane();
-        String cssPath = getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm();
-        dialogPane.getStylesheets().add(cssPath);
-        dialogPane.getStyleClass().add("root-container");
-        Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
-        okButton.setText("Tak, usuń");
-        okButton.getStyleClass().add("button-outline-danger");
-        Button cancelButton = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
-        cancelButton.setText("Anuluj");
-        cancelButton.getStyleClass().add("button-primary");
-        alert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                masterData.remove(user);
-                System.out.println("Usunięto użytkownika ID: " + user.getId());
+                setGraphic(empty ? null : container);
             }
         });
     }
 
     private void setupFiltering() {
         FilteredList<UserDTO> filteredData = new FilteredList<>(masterData, p -> true);
-        searchField.textProperty().addListener((observable, oldValue, newValue) -> filteredData.setPredicate(user -> {
-            if (newValue == null || newValue.isEmpty()) return true;
-            String lowerCaseFilter = newValue.toLowerCase();
-            return user.getUsername().toLowerCase().contains(lowerCaseFilter) ||
-                    user.getEmail().toLowerCase().contains(lowerCaseFilter) ||
-                    String.valueOf(user.getId()).contains(lowerCaseFilter);
+        searchField.textProperty().addListener((obs, oldVal, newVal) -> filteredData.setPredicate(user -> {
+            if (newVal == null || newVal.isBlank()) return true;
+            String filter = newVal.toLowerCase();
+            return user.getUsername().toLowerCase().contains(filter) ||
+                    user.getEmail().toLowerCase().contains(filter) ||
+                    String.valueOf(user.getId()).contains(filter);
         }));
         usersTable.setItems(filteredData);
+    }
+
+    private void handleDeleteRequest(UserDTO user) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Potwierdzenie");
+        alert.setHeaderText("Usunąć użytkownika " + user.getUsername() + "?");
+        alert.setContentText("Ta operacja jest nieodwracalna.");
+        DialogPane pane = alert.getDialogPane();
+        pane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
+        pane.getStyleClass().add("root-container");
+        styleButton(pane, ButtonType.OK, "Tak, usuń", "button-primary");
+        styleButton(pane, ButtonType.CANCEL, "Anuluj", "button-outline-danger");
+        alert.showAndWait().ifPresent(res -> {
+            if (res == ButtonType.OK) masterData.remove(user);
+        });
+    }
+
+    private void styleButton(DialogPane pane, ButtonType type, String text, String styleClass) {
+        Button btn = (Button) pane.lookupButton(type);
+        if (btn != null) {
+            btn.setText(text);
+            btn.getStyleClass().add(styleClass);
+        }
+    }
+
+    private void loadInitialData() {
+        masterData.addAll(
+                UserDTO.builder().id(1L).username("admin_super").email("admin@library.com").role(UserRole.ADMIN).build(),
+                UserDTO.builder().id(2L).username("jan_nowak").email("j.nowak@gmail.com").role(UserRole.USER).build(),
+                UserDTO.builder().id(3L).username("bibliotekarz1").email("staff@library.com").role(UserRole.LIBRARIAN).build()
+        );
     }
 }

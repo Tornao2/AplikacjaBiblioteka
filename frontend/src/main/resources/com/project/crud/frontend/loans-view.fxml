@@ -26,6 +26,6 @@
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
         </columnResizePolicy>
     </TableView>
-    <Button fx:id="prolongBtn" text="Poproś o przedłużenie"
-            onAction="#requestProlongation" maxWidth="Infinity" styleClass="button-primary"/>
+    <Button fx:id="prolongBtn" text="Poproś o przedłużenie" onAction="#requestProlongation"
+            maxWidth="Infinity" styleClass="button-primary"/>
 </VBox>

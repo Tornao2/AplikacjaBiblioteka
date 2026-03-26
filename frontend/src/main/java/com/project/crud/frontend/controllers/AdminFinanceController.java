@@ -5,36 +5,43 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-
 import java.time.LocalDate;
 
 public class AdminFinanceController {
     @FXML private ComboBox<String> typeComboBox;
-    @FXML private TextField amountField;
-    @FXML private TextField descriptionArea;
+    @FXML private TextField amountField, descriptionArea;
     @FXML private Button saveButton;
-
+    @FXML private DatePicker filterDateFrom, filterDateTo;
+    @FXML private Label countLabel, incomeLabel, expenseLabel;
     @FXML private TableView<FinanceDTO> financeTable;
     @FXML private TableColumn<FinanceDTO, LocalDate> colDate;
-    @FXML private TableColumn<FinanceDTO, String> colType;
+    @FXML private TableColumn<FinanceDTO, String> colType, colDesc;
     @FXML private TableColumn<FinanceDTO, Double> colAmount;
-    @FXML private TableColumn<FinanceDTO, String> colDesc;
     @FXML private TableColumn<FinanceDTO, Void> colActions;
 
     private final ObservableList<FinanceDTO> masterData = FXCollections.observableArrayList();
+    private FilteredList<FinanceDTO> filteredData;
 
     @FXML
     public void initialize() {
         setupTable();
-        amountField.textProperty().addListener((obs, oldVal, newVal) -> {
-            if (!newVal.matches("\\d*(\\.\\d*)?")) amountField.setText(oldVal);
+        setupFiltering();
+        amountField.textProperty().addListener((obs, old, val) -> {
+            if (!val.matches("\\d*(\\.\\d*)?")) amountField.setText(old);
         });
+        saveButton.disableProperty().bind(
+                typeComboBox.valueProperty().isNull()
+                        .or(amountField.textProperty().isEmpty())
+                        .or(descriptionArea.textProperty().isEmpty())
+        );
     }
 
     private void setupTable() {
@@ -43,133 +50,111 @@ public class AdminFinanceController {
         colAmount.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getAmount()));
         colDesc.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getDescription()));
         setupActions();
-        financeTable.setItems(masterData);
+        financeTable.setRowFactory(tv -> new TableRow<>() {
+            @Override
+            protected void updateItem(FinanceDTO item, boolean empty) {
+                super.updateItem(item, empty);
+                if (item == null || empty) setStyle("");
+                else if ("DOCHÓD".equals(item.getType())) setStyle("-fx-background-color: rgba(39, 174, 96, 0.15);");
+                else if ("STRATA".equals(item.getType())) setStyle("-fx-background-color: rgba(231, 76, 60, 0.15);");
+            }
+        });
+    }
+
+    private void setupFiltering() {
+        filteredData = new FilteredList<>(masterData, p -> true);
+        filterDateFrom.valueProperty().addListener(o -> updateFilterAndStats());
+        filterDateTo.valueProperty().addListener(o -> updateFilterAndStats());
+        SortedList<FinanceDTO> sortedData = new SortedList<>(filteredData);
+        sortedData.comparatorProperty().bind(financeTable.comparatorProperty());
+        financeTable.setItems(sortedData);
+        updateFilterAndStats();
+    }
+
+    private void updateFilterAndStats() {
+        filteredData.setPredicate(item -> {
+            LocalDate from = filterDateFrom.getValue(), to = filterDateTo.getValue(), date = item.getDate();
+            return (from == null || !date.isBefore(from)) && (to == null || !date.isAfter(to));
+        });
+        double income = filteredData.stream().filter(i -> "DOCHÓD".equals(i.getType())).mapToDouble(FinanceDTO::getAmount).sum();
+        double expense = filteredData.stream().filter(i -> "STRATA".equals(i.getType())).mapToDouble(FinanceDTO::getAmount).sum();
+        countLabel.setText("Operacji: " + filteredData.size());
+        incomeLabel.setText(String.format("Dochody: %.2f PLN", income));
+        expenseLabel.setText(String.format("Straty: %.2f PLN", expense));
     }
 
     private void setupActions() {
-        colActions.setCellFactory(param -> new TableCell<>() {
-            private final Button editBtn = new Button("Edytuj");
-            private final Button deleteBtn = new Button("Usuń");
-            private final HBox container = new HBox(10, editBtn, deleteBtn);
+        colActions.setCellFactory(p -> new TableCell<>() {
+            private final Button edit = new Button("Edytuj"), del = new Button("Usuń");
+            private final HBox container = new HBox(10, edit, del);
             {
-                editBtn.getStyleClass().add("button-primary-table");
-                deleteBtn.getStyleClass().add("button-outline-danger-table");
+                edit.getStyleClass().add("button-primary-table");
+                del.getStyleClass().add("button-outline-danger-table");
                 container.setAlignment(Pos.CENTER);
-                editBtn.setOnAction(event -> {
-                    FinanceDTO finance = getTableView().getItems().get(getIndex());
-                    showEditDialog(finance);
-                });
-                deleteBtn.setOnAction(event -> {
-                    FinanceDTO finance = getTableView().getItems().get(getIndex());
-                    handleDelete(finance);
-                });
+                edit.setOnAction(e -> showEditDialog(getTableView().getItems().get(getIndex())));
+                del.setOnAction(e -> handleDelete(getTableView().getItems().get(getIndex())));
             }
-            @Override
-            protected void updateItem(Void item, boolean empty) {
-                super.updateItem(item, empty);
-                setGraphic(empty ? null : container);
+            @Override protected void updateItem(Void i, boolean e) {
+                super.updateItem(i, e);
+                setGraphic(e ? null : container);
             }
         });
     }
 
     @FXML
     private void handleSave() {
-        if (typeComboBox.getValue() == null || amountField.getText().isEmpty()) {
-            showSimpleAlert();
-            return;
-        }
-        FinanceDTO newEntry = FinanceDTO.builder()
-                .id((long) (masterData.size() + 1))
-                .date(LocalDate.now())
-                .type(typeComboBox.getValue())
-                .amount(Double.parseDouble(amountField.getText()))
-                .description(descriptionArea.getText())
-                .build();
-        masterData.add(newEntry);
+        masterData.add(FinanceDTO.builder()
+                .id(System.currentTimeMillis()).date(LocalDate.now())
+                .type(typeComboBox.getValue()).amount(Double.parseDouble(amountField.getText()))
+                .description(descriptionArea.getText()).build());
+        updateFilterAndStats();
         clearFields();
     }
 
-    private void showEditDialog(FinanceDTO finance) {
+    private void showEditDialog(FinanceDTO f) {
         Dialog<FinanceDTO> dialog = new Dialog<>();
-        dialog.setTitle("Edycja operacji finansowej");
-        dialog.setHeaderText("Edytujesz wpis z dnia: " + finance.getDate());
-        DialogPane pane = dialog.getDialogPane();
-        pane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
-        pane.getStyleClass().add("root-container");
-        ButtonType saveBtnType = new ButtonType("Zapisz", ButtonBar.ButtonData.OK_DONE);
-        pane.getButtonTypes().addAll(saveBtnType, ButtonType.CANCEL);
-        ((Button) pane.lookupButton(saveBtnType)).getStyleClass().add("button-primary");
-        ((Button) pane.lookupButton(ButtonType.CANCEL)).getStyleClass().add("button-outline-danger");
+        dialog.setTitle("Edycja");
+        ButtonType saveType = new ButtonType("Zapisz", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveType, ButtonType.CANCEL);
+        styleControl(dialog, "Zapisz");
         GridPane grid = new GridPane();
-        grid.setHgap(10); grid.setVgap(10);
-        grid.setPadding(new Insets(20, 50, 10, 10));
-        ComboBox<String> editType = new ComboBox<>(typeComboBox.getItems());
-        editType.setValue(finance.getType());
-        editType.setMaxWidth(Double.MAX_VALUE);
-        TextField editAmount = new TextField(String.valueOf(finance.getAmount()));
-        TextField editDesc = new TextField(finance.getDescription());
-        grid.add(new Label("Typ:"), 0, 0);      grid.add(editType, 1, 0);
-        grid.add(new Label("Kwota:"), 0, 1);    grid.add(editAmount, 1, 1);
-        grid.add(new Label("Tytuł:"), 0, 2);     grid.add(editDesc, 1, 2);
-        pane.setContent(grid);
-        dialog.setResultConverter(btn -> {
-            if (btn == saveBtnType) {
-                if (editType.getValue() == null || editAmount.getText().isEmpty()) return null;
-                finance.setType(editType.getValue());
-                finance.setAmount(Double.parseDouble(editAmount.getText()));
-                finance.setDescription(editDesc.getText());
-                return finance;
-            }
-            return null;
-        });
-        dialog.showAndWait().ifPresent(res -> financeTable.refresh());
+        grid.setHgap(10); grid.setVgap(10); grid.setPadding(new Insets(20));
+        ComboBox<String> eType = new ComboBox<>(typeComboBox.getItems()); eType.setValue(f.getType());
+        TextField eAmount = new TextField(String.valueOf(f.getAmount())), eDesc = new TextField(f.getDescription());
+        grid.add(new Label("Typ:"), 0, 0); grid.add(eType, 1, 0);
+        grid.add(new Label("Kwota:"), 0, 1); grid.add(eAmount, 1, 1);
+        grid.add(new Label("Tytuł:"), 0, 2); grid.add(eDesc, 1, 2);
+        dialog.getDialogPane().setContent(grid);
+        dialog.setResultConverter(b -> b == saveType ? updateFinance(f, eType, eAmount, eDesc) : null);
+        dialog.showAndWait().ifPresent(r -> { financeTable.refresh(); updateFilterAndStats(); });
     }
 
-    private void handleDelete(FinanceDTO finance) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Potwierdzenie");
-        alert.setHeaderText("Usunąć wpis finansowy?");
-        styleAlert(alert);
-        DialogPane pane = alert.getDialogPane();
-        Button okButton = (Button) pane.lookupButton(ButtonType.OK);
-        if (okButton != null) {
-            okButton.getStyleClass().add("button-primary");
-            okButton.setText("Tak, usuń");
-        }
-        Button cancelButton = (Button) pane.lookupButton(ButtonType.CANCEL);
-        if (cancelButton != null) {
-            cancelButton.getStyleClass().add("button-outline-danger");
-            cancelButton.setText("Anuluj");
-        }
-        alert.showAndWait().ifPresent(res -> {
-            if (res == ButtonType.OK) {
-                masterData.remove(finance);
-            }
-        });
+    private FinanceDTO updateFinance(FinanceDTO f, ComboBox<String> t, TextField a, TextField d) {
+        f.setType(t.getValue()); f.setAmount(Double.parseDouble(a.getText())); f.setDescription(d.getText());
+        return f;
     }
 
-    private void showSimpleAlert() {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Błąd walidacji");
-        alert.setHeaderText(null);
-        alert.setContentText("Proszę wypełnić typ transakcji oraz kwotę!");
-        styleAlert(alert);
-        alert.showAndWait();
+    private void handleDelete(FinanceDTO f) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Usunąć wpis: " + f.getDescription() + "?");
+        styleControl(alert, "Tak, usuń");
+        alert.showAndWait().ifPresent(r -> { if (r == ButtonType.OK) { masterData.remove(f); updateFilterAndStats(); }});
     }
 
-    private void styleAlert(Alert alert) {
-        DialogPane pane = alert.getDialogPane();
-        pane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
-        pane.getStyleClass().add("root-container");
-        Button okBtn = (Button) pane.lookupButton(ButtonType.OK);
-        if (okBtn != null) okBtn.getStyleClass().add("button-primary");
+    private void styleControl(Dialog<?> d, String okT) {
+        DialogPane p = d.getDialogPane();
+        p.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
+        p.getStyleClass().add("root-container");
+        d.setHeaderText(null);
+        Button ok = (Button) p.lookupButton(p.getButtonTypes().get(0));
+        if (ok != null) { ok.getStyleClass().add("button-primary"); ok.setText(okT); }
+        Button can = (Button) p.lookupButton(ButtonType.CANCEL);
+        if (can != null) { can.getStyleClass().add("button-outline-danger"); can.setText("Anuluj"); }
     }
 
     @FXML private void handleCancel() { clearFields(); }
+
     private void clearFields() {
-        typeComboBox.setValue(null);
-        amountField.clear();
-        descriptionArea.clear();
+        typeComboBox.setValue(null); amountField.clear(); descriptionArea.clear();
         financeTable.getSelectionModel().clearSelection();
     }
 }

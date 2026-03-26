@@ -10,11 +10,11 @@
         <URL value="@style.css" />
     </stylesheets>
     <Label text="Katalog książek" styleClass="header-text"/>
-    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="stats-box">
+    <HBox styleClass="stats-box">
         <TextField fx:id="searchField" promptText="Szukaj po tytule, autorze lub kategorii..."
                    HBox.hgrow="ALWAYS" styleClass="text-field" />
     </HBox>
-    <TableView fx:id="bookTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+    <TableView fx:id="bookTable" VBox.vgrow="ALWAYS">
         <columns>
             <TableColumn fx:id="colId" text="ID" prefWidth="40"/>
             <TableColumn fx:id="colTitle" text="Tytuł" prefWidth="130"/>
@@ -25,8 +25,5 @@
             <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
             <TableColumn fx:id="colDescription" text="Opis" prefWidth="270"/>
         </columns>
-        <columnResizePolicy>
-            <TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY" />
-        </columnResizePolicy>
     </TableView>
 </VBox>

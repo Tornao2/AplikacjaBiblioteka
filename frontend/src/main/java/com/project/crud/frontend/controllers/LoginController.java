@@ -3,11 +3,11 @@ package com.project.crud.frontend.controllers;
 import com.project.crud.frontend.auth.UserSession;
 import com.project.crud.frontend.model.UserRole;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
-import javafx.scene.Scene;
-import javafx.fxml.FXMLLoader;
 import java.io.IOException;
 
 public class LoginController {
@@ -15,10 +15,13 @@ public class LoginController {
     @FXML private PasswordField passwordField;
     @FXML private Label errorLabel;
     @FXML private HBox errorCont;
+    @FXML private Button btn;
 
     @FXML
     private void initialize() {
         errorCont.setVisible(false);
+        btn.disableProperty().bind(usernameField.textProperty().isEmpty()
+                .or(passwordField.textProperty().isEmpty()));
     }
 
     @FXML
@@ -26,28 +29,35 @@ public class LoginController {
         String user = usernameField.getText();
         String pass = passwordField.getText();
         if ("admin".equals(user) && "admin".equals(pass)) {
-            UserSession.login(user, "admin@admin.pl", UserRole.ADMIN);
-            loadMainView();
+            performLogin(user, "admin@admin.pl", UserRole.ADMIN);
         } else if ("biblio".equals(user) && "biblio".equals(pass)) {
-            UserSession.login(user, "biblio@admin.pl", UserRole.LIBRARIAN);
-            loadMainView();
+            performLogin(user, "biblio@admin.pl", UserRole.LIBRARIAN);
         } else if ("user".equals(user) && "user".equals(pass)) {
-            UserSession.login(user,"user@admin.pl", UserRole.USER);
-            loadMainView();
+            performLogin(user, "user@admin.pl", UserRole.USER);
         } else {
-            errorLabel.setText("Błędne dane!");
-            errorCont.setVisible(true);
+            showError("Błędny login lub hasło!");
         }
+    }
+
+    private void performLogin(String user, String email, UserRole role) {
+        UserSession.login(user, email, role);
+        loadMainView();
+    }
+
+    private void showError(String msg) {
+        errorLabel.setText(msg);
+        errorCont.setVisible(true);
     }
 
     private void loadMainView() {
         try {
-            FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/main-view.fxml"));
-            Scene scene = new Scene(fxmlLoader.load(), 1200, 900);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/main-view.fxml"));
             Stage stage = (Stage) usernameField.getScene().getWindow();
-            stage.setScene(scene);
+            stage.setScene(new Scene(loader.load(), 1200, 900));
             stage.setTitle("System Biblioteczny");
+            stage.centerOnScreen();
         } catch (IOException e) {
+            showError("Błąd ładowania widoku głównego!");
             e.printStackTrace();
         }
     }

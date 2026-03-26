@@ -10,10 +10,9 @@
         <URL value="@style.css" />
     </stylesheets>
     <Label text="Zarządzanie użytkownikami" styleClass="header-text"/>
-    <VBox spacing="10" styleClass="stats-box" VBox.vgrow="ALWAYS">
-        <TextField fx:id="userSearchField" promptText="Wyszukaj użytkownika..."
-                   styleClass="text-field" />
-        <TableView fx:id="userTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+    <VBox spacing="10" VBox.vgrow="ALWAYS">
+        <TextField fx:id="userSearchField" promptText="Wyszukaj użytkownika..." styleClass="text-field" />
+        <TableView fx:id="userTable" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn fx:id="colUserName" text="Imię i Nazwisko" prefWidth="200"/>
                 <TableColumn fx:id="colUserEmail" text="Email" prefWidth="250"/>
@@ -24,7 +23,7 @@
         </TableView>
     </VBox>
     <Label text="Aktywne wypożyczenia wybranego użytkownika" styleClass="stats-label"/>
-    <TableView fx:id="userLoansTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+    <TableView fx:id="userLoansTable" VBox.vgrow="ALWAYS">
         <columns>
             <TableColumn fx:id="colBookTitle" text="Tytuł Książki" prefWidth="300"/>
             <TableColumn fx:id="colDueDate" text="Termin zwrotu" prefWidth="150"/>
@@ -37,14 +36,10 @@
     </TableView>
     <Button fx:id="returnBookBtn" text="Przyjmij zwrot książki"
             maxWidth="Infinity" onAction="#handleReturnAction" styleClass="button-outline-danger"/>
-    <Separator/>
-    <HBox spacing="15" alignment="CENTER">
-        <Button fx:id="openPickerBtn"
-                text="Wyszukaj książke do wypożyczenia."
-                onAction="#handleOpenBookPicker"
-                maxWidth="Infinity"
-                HBox.hgrow="ALWAYS"
-                styleClass="button-primary"
-                prefHeight="45"/>
-    </HBox>
+    <Button fx:id="openPickerBtn"
+            text="Wyszukaj książkę do wypożyczenia"
+            onAction="#handleOpenBookPicker"
+            maxWidth="Infinity"
+            styleClass="button-primary"
+            prefHeight="45"/>
 </VBox>

@@ -3,7 +3,6 @@ package com.project.crud.frontend.controllers;
 import com.project.crud.frontend.auth.UserSession;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
@@ -11,59 +10,52 @@ import javafx.stage.Stage;
 public class ProfileController {
     @FXML private TextField emailField;
     @FXML private PasswordField currentPasswordField, newPasswordField, confirmPasswordField;
+    @FXML private Button aktButton, chanButton;
 
     @FXML
     public void initialize() {
-        if (UserSession.getInstance().getUserEmail() != null) {
-            emailField.setText(UserSession.getInstance().getUserEmail());
-        }
+        String currentEmail = UserSession.getInstance().getUserEmail();
+        if (currentEmail != null) emailField.setText(currentEmail);
+        aktButton.disableProperty().bind(emailField.textProperty().isEmpty()
+                .or(emailField.textProperty().isEqualTo(currentEmail)));
+        chanButton.disableProperty().bind(currentPasswordField.textProperty().isEmpty()
+                .or(newPasswordField.textProperty().isEmpty())
+                .or(confirmPasswordField.textProperty().isEmpty()));
     }
 
     @FXML
     private void handleUpdateEmail() {
-        String newEmail = emailField.getText();
-        if (newEmail != null && newEmail.contains("@") && newEmail.length() > 5) {
-            UserSession.getInstance().setUserEmail(newEmail);
-            showAlert("Adres email został zaktualizowany.", Alert.AlertType.INFORMATION);
+        String newEmail = emailField.getText().trim();
+        if (newEmail.length() >= 5 && newEmail.contains("@")) {
+            UserSession.getInstance().setUserEmail(newEmail.toLowerCase());
+            showAlert("Sukces", "Adres email został zaktualizowany.", Alert.AlertType.INFORMATION);
         } else {
-            showAlert("Podaj poprawny adres email.", Alert.AlertType.ERROR);
+            showAlert("Błąd", "Podaj poprawny adres email (min. 5 znaków).", Alert.AlertType.ERROR);
         }
     }
 
     @FXML
     private void handleUpdatePassword() {
-        String current = currentPasswordField.getText();
         String next = newPasswordField.getText();
-        String confirm = confirmPasswordField.getText();
-        if (current.isEmpty() || next.isEmpty()) {
-            showAlert("Pola haseł nie mogą być puste.", Alert.AlertType.ERROR);
+        if (!next.equals(confirmPasswordField.getText())) {
+            showAlert("Błąd", "Nowe hasła nie są identyczne.", Alert.AlertType.ERROR);
             return;
         }
-        if (!next.equals(confirm)) {
-            showAlert("Nowe hasła nie są identyczne.", Alert.AlertType.ERROR);
+        if (next.length() < 5) {
+            showAlert("Błąd", "Hasło musi mieć przynajmniej 5 znaków.", Alert.AlertType.ERROR);
             return;
         }
-        showAlert( "Hasło zostało zmienione.", Alert.AlertType.INFORMATION);
+        showAlert("Sukces", "Hasło zostało zmienione.", Alert.AlertType.INFORMATION);
         clearPasswordFields();
     }
 
     @FXML
     private void handleDeleteAccount() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Usuwanie konta");
-        alert.setHeaderText("Czy na pewno chcesz usunąć konto?");
-        alert.setContentText("Ta operacja jest nieodwracalna. Stracisz dostęp do systemu.");
-        DialogPane dialogPane = alert.getDialogPane();
-        if (emailField.getScene() != null) {
-            dialogPane.getStylesheets().addAll(emailField.getScene().getStylesheets());
-        }
-        dialogPane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
-        Button okButton = (Button) dialogPane.lookupButton(ButtonType.OK);
-        okButton.setText("Usuń bezpowrotnie");
-        okButton.getStyleClass().add("button-primary");
-        Button cancelButton = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
-        cancelButton.setText("Anuluj");
-        cancelButton.getStyleClass().add("button-outline-danger");
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Ta operacja jest nieodwracalna. Czy na pewno usunąć konto?");
+        styleAlert(alert, "Usuwanie konta");
+        Button ok = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
+        ok.setText("Usuń bezpowrotnie");
+        ok.getStyleClass().add("button-primary");
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
                 UserSession.logout();
@@ -74,17 +66,13 @@ public class ProfileController {
 
     private void redirectToLogin() {
         try {
-            FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/project/crud/frontend/login-view.fxml"));
-            Parent loginRoot = loader.load();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/login-view.fxml"));
             Stage stage = (Stage) emailField.getScene().getWindow();
-            Scene loginScene = new Scene(loginRoot, 1200, 900);
-            stage.setScene(loginScene);
+            stage.setScene(new Scene(loader.load(), 1200, 900));
             stage.setTitle("Logowanie");
             stage.centerOnScreen();
-            stage.show();
-        } catch (java.io.IOException e) {
-            showAlert("Nie udało się powrócić do ekranu logowania.", Alert.AlertType.ERROR);
-            e.printStackTrace();
+        } catch (Exception e) {
+            showAlert("Błąd", "Nie udało się powrócić do logowania.", Alert.AlertType.ERROR);
         }
     }
 
@@ -94,21 +82,27 @@ public class ProfileController {
         confirmPasswordField.clear();
     }
 
-    private void showAlert(String content, Alert.AlertType alertType) {
-        Alert alert = new Alert(alertType, content);
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
-        dialogPane.getStyleClass().add("root-container");
-        if (alertType == Alert.AlertType.INFORMATION){
-            alert.setTitle("Sukces");
-        }
-        alert.setHeaderText(null);
-        Button okButton = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
-        if (okButton != null) {
-            okButton.getStyleClass().add("button-primary");
-            okButton.applyCss();
-            okButton.setText("Rozumiem");
-        }
+    private void showAlert(String title, String content, Alert.AlertType type) {
+        Alert alert = new Alert(type, content);
+        styleAlert(alert, title);
         alert.showAndWait();
+    }
+
+    private void styleAlert(Alert alert, String title) {
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        DialogPane dp = alert.getDialogPane();
+        dp.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
+        dp.getStyleClass().add("root-container");
+        Button ok = (Button) dp.lookupButton(ButtonType.OK);
+        if (ok != null) {
+            ok.getStyleClass().add("button-primary");
+            ok.setText("Rozumiem");
+        }
+        Button cancel = (Button) dp.lookupButton(ButtonType.CANCEL);
+        if (cancel != null) {
+            cancel.getStyleClass().add("button-outline-danger");
+            cancel.setText("Anuluj");
+        }
     }
 }

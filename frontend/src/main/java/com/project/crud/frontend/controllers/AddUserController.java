@@ -3,7 +3,6 @@ package com.project.crud.frontend.controllers;
 import com.project.crud.frontend.model.UserDTO;
 import com.project.crud.frontend.model.UserRole;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
@@ -12,44 +11,33 @@ public class AddUserController {
     @FXML private PasswordField passwordField, confirmPasswordField;
     @FXML private Button registerBtn, clearBtn;
 
-    @FXML
     public void initialize() {
-        BooleanBinding isAnyFieldEmpty = Bindings.createBooleanBinding(() ->
-                        firstNameField.getText().trim().isEmpty() ||
-                                lastNameField.getText().trim().isEmpty() ||
-                                emailField.getText().trim().isEmpty() ||
-                                usernameField.getText().trim().isEmpty() ||
-                                passwordField.getText().isEmpty() ||
-                                confirmPasswordField.getText().isEmpty(),
-                firstNameField.textProperty(), lastNameField.textProperty(),
-                emailField.textProperty(), usernameField.textProperty(),
-                passwordField.textProperty(), confirmPasswordField.textProperty()
-        );
-        registerBtn.disableProperty().bind(isAnyFieldEmpty);
-        BooleanBinding areAllFieldsEmpty = Bindings.createBooleanBinding(() ->
-                        firstNameField.getText().isEmpty() &&
-                                lastNameField.getText().isEmpty() &&
-                                emailField.getText().isEmpty() &&
-                                usernameField.getText().isEmpty() &&
-                                passwordField.getText().isEmpty() &&
-                                confirmPasswordField.getText().isEmpty(),
-                firstNameField.textProperty(), lastNameField.textProperty(),
-                emailField.textProperty(), usernameField.textProperty(),
-                passwordField.textProperty(), confirmPasswordField.textProperty()
-        );
-        clearBtn.disableProperty().bind(areAllFieldsEmpty);
+        registerBtn.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                        isAnyBlank(firstNameField, lastNameField, emailField, usernameField, passwordField, confirmPasswordField),
+                firstNameField.textProperty(), lastNameField.textProperty(), emailField.textProperty(),
+                usernameField.textProperty(), passwordField.textProperty(), confirmPasswordField.textProperty()
+        ));
+        clearBtn.disableProperty().bind(Bindings.createBooleanBinding(() ->
+                        isAllEmpty(firstNameField, lastNameField, emailField, usernameField, passwordField, confirmPasswordField),
+                firstNameField.textProperty(), lastNameField.textProperty(), emailField.textProperty(),
+                usernameField.textProperty(), passwordField.textProperty(), confirmPasswordField.textProperty()
+        ));
     }
 
     @FXML
     private void handleRegister() {
+        firstNameField.setText(firstNameField.getText().trim());
+        lastNameField.setText(lastNameField.getText().trim());
+        emailField.setText(emailField.getText().trim().toLowerCase());
+        usernameField.setText(usernameField.getText().trim().replaceAll("\\s+", ""));
         if (isInputInvalid()) {
             return;
         }
         UserDTO newUser = UserDTO.builder()
-                .firstName(firstNameField.getText().trim())
-                .lastName(lastNameField.getText().trim())
-                .email(emailField.getText().trim())
-                .username(usernameField.getText().trim())
+                .firstName(firstNameField.getText())
+                .lastName(lastNameField.getText())
+                .email(emailField.getText())
+                .username(usernameField.getText())
                 .role(UserRole.USER)
                 .build();
         showInfo("Czytelnik " + newUser.getFullName() + " został dodany.", Alert.AlertType.INFORMATION);
@@ -58,49 +46,47 @@ public class AddUserController {
 
     @FXML
     private void handleClear() {
-        firstNameField.clear();
-        lastNameField.clear();
-        emailField.clear();
-        usernameField.clear();
-        passwordField.clear();
-        confirmPasswordField.clear();
+        for (TextInputControl f : new TextInputControl[]{firstNameField, lastNameField, emailField, usernameField, passwordField, confirmPasswordField})
+            f.clear();
     }
 
     private boolean isInputInvalid() {
-        if (firstNameField.getText().isBlank()){
-            showInfo("Wypełnij pole imienia.", Alert.AlertType.ERROR);
-        } else if (lastNameField.getText().isBlank()) {
-            showInfo("Wypełnij pole nazwiska.", Alert.AlertType.ERROR);
-        } else if (usernameField.getText().isBlank()) {
-            showInfo("Wypełnij pole loginu.", Alert.AlertType.ERROR);
-        } else if (!emailField.getText().contains("@")) {
-            showInfo("Email powinien posiadać znak małpy (@).", Alert.AlertType.ERROR);
-        } else if (passwordField.getText().length() < 4) {
-            showInfo("Hasło musi być dłuższe niż 3 znaki", Alert.AlertType.ERROR);
-        } else if (!passwordField.getText().equals(confirmPasswordField.getText())){
-            showInfo("Hasła nie są identyczne.", Alert.AlertType.ERROR);
-        }
-        else {
-            return false;
-        }
+        String fName = firstNameField.getText(), lName = lastNameField.getText(),
+                uName = usernameField.getText(), email = emailField.getText(),
+                pass = passwordField.getText(), confirm = confirmPasswordField.getText();
+        if (fName.isBlank()) showInfo("Wypełnij pole imienia.", Alert.AlertType.ERROR);
+        else if (lName.isBlank()) showInfo("Wypełnij pole nazwiska.", Alert.AlertType.ERROR);
+        else if (uName.isBlank()) showInfo("Wypełnij pole loginu.", Alert.AlertType.ERROR);
+        else if (!email.contains("@")) showInfo("Email powinien posiadać znak małpy (@).", Alert.AlertType.ERROR);
+        else if (pass.length() < 5) showInfo("Hasło musi być dłuższe niż 5 znaki", Alert.AlertType.ERROR);
+        else if (!pass.equals(confirm)) showInfo("Hasła nie są identyczne.", Alert.AlertType.ERROR);
+        else if (uName.length() < 3) showInfo("Login musi mieć co najmniej 3 znaki.", Alert.AlertType.ERROR);
+        else return false;
         return true;
     }
 
-    private void showInfo(String message, Alert.AlertType alertType) {
-        Alert alert = new Alert(alertType, message);
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
-        dialogPane.getStyleClass().add("root-container");
+    private void showInfo(String message, Alert.AlertType type) {
+        Alert alert = new Alert(type, message);
         alert.setHeaderText(null);
-        if (alertType == Alert.AlertType.INFORMATION){
-            alert.setTitle("Sukces");
-        }
-        Button okButton = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
-        if (okButton != null) {
-            okButton.getStyleClass().add("button-primary");
-            okButton.applyCss();
-            okButton.setText("Rozumiem");
+        alert.setTitle(type == Alert.AlertType.INFORMATION ? "Sukces" : "Błąd");
+        DialogPane pane = alert.getDialogPane();
+        pane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
+        pane.getStyleClass().add("root-container");
+        Button okBtn = (Button) pane.lookupButton(ButtonType.OK);
+        if (okBtn != null) {
+            okBtn.getStyleClass().add("button-primary");
+            okBtn.setText("Rozumiem");
         }
         alert.showAndWait();
+    }
+
+    private boolean isAnyBlank(TextInputControl... fields) {
+        for (TextInputControl f : fields) if (f.getText().trim().isEmpty()) return true;
+        return false;
+    }
+
+    private boolean isAllEmpty(TextInputControl... fields) {
+        for (TextInputControl f : fields) if (!f.getText().isEmpty()) return false;
+        return true;
     }
 }

@@ -3,10 +3,10 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="20" styleClass="root-container" maxWidth="Infinity" xmlns:fx="http://javafx.com/fxml"
+<VBox spacing="20" styleClass="root-container" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.project.crud.frontend.controllers.AdminSettingsController">
     <Label text="Konfiguracja Systemu" styleClass="header-text"/>
-    <VBox spacing="25" styleClass="form-container" maxWidth="Infinity">
+    <VBox spacing="25" styleClass="form-container">
         <VBox spacing="15">
             <Label text="Zasady Wypożyczeń i Kar" styleClass="stats-label"/>
             <GridPane hgap="20" vgap="15">
@@ -32,8 +32,9 @@
                 <Spinner fx:id="userLimitSpinner" editable="true" maxWidth="Infinity" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
             </GridPane>
         </VBox>
-        <HBox alignment="CENTER_RIGHT"  maxWidth="Infinity" spacing="15">
-            <Button text="Zapisz ustawienia" HBox.hgrow="ALWAYS" onAction="#handleSaveSettings" styleClass="button-primary" maxWidth="Infinity"/>
+        <HBox spacing="15">
+            <Button fx:id="saveBtn" text="Zapisz ustawienia" onAction="#handleSaveSettings"
+                    styleClass="button-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
             <Button text="Przywróć domyślne" onAction="#handleReset" styleClass="button-outline-danger"/>
         </HBox>
     </VBox>

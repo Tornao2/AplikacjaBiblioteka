@@ -4,7 +4,6 @@ import com.project.crud.frontend.auth.UserSession;
 import com.project.crud.frontend.model.UserRole;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -13,78 +12,45 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class MainController {
-    @FXML private Button staffSearchBtn;
-    @FXML private Button inventoryBtn;
-    @FXML private Button staffBtn;
-    @FXML private Button managBtn;
-    @FXML private Button addBtn;
-    @FXML private Button statBtn;
-    @FXML private Button delBtn;
-    @FXML private Button logsBtn;
-    @FXML private Button systemBtn;
+    @FXML private Button staffSearchBtn, inventoryBtn, staffBtn, managBtn, addBtn, delBtn, logsBtn, systemBtn;
     @FXML private StackPane contentArea;
-    @FXML private Label welcomeLabel;
-    @FXML private Label adminSectionLabel;
-    @FXML private Label librarianSectionLabel;
-    @FXML private Label userSectionLabel;
+    @FXML private Label welcomeLabel, adminSectionLabel, librarianSectionLabel, userSectionLabel;
 
     @FXML
     public void initialize() {
-        if (UserSession.getInstance() != null) {
-            welcomeLabel.setText("Zalogowano jako: " + UserSession.getInstance().getUsername());
+        UserSession session = UserSession.getInstance();
+        if (session != null) {
+            welcomeLabel.setText("Zalogowano jako: " + session.getUsername());
+            applySecurityPolicy(session.getRole());
         }
         showCatalog();
-        UserRole role = UserSession.getInstance().getRole();
+    }
+
+    private void applySecurityPolicy(UserRole role) {
         boolean isStaff = (role == UserRole.LIBRARIAN || role == UserRole.ADMIN);
-        boolean isAdmin = role == UserRole.ADMIN;
-        adminSectionLabel.setVisible(isAdmin);
-        adminSectionLabel.setManaged(isAdmin);
-        librarianSectionLabel.setVisible(isStaff);
-        librarianSectionLabel.setManaged(isStaff);
-        userSectionLabel.setVisible(isStaff);
-        userSectionLabel.setManaged(isStaff);
-        staffSearchBtn.setVisible(isStaff);
-        staffSearchBtn.setManaged(isStaff);
-        inventoryBtn.setVisible(isStaff);
-        inventoryBtn.setManaged(isStaff);
-        staffBtn.setVisible(isAdmin);
-        staffBtn.setManaged(isAdmin);
-        systemBtn.setVisible(isAdmin);
-        systemBtn.setManaged(isAdmin);
-        logsBtn.setVisible(isAdmin);
-        logsBtn.setManaged(isAdmin);
-        statBtn.setVisible(isAdmin);
-        statBtn.setManaged(isAdmin);
-        delBtn.setVisible(isAdmin);
-        delBtn.setManaged(isAdmin);
-        managBtn.setVisible(isAdmin);
-        managBtn.setManaged(isAdmin);
-        addBtn.setVisible(isStaff);
-        addBtn.setManaged(isStaff);
+        boolean isAdmin = (role == UserRole.ADMIN);
+        configureNodes(isStaff, librarianSectionLabel, userSectionLabel, staffSearchBtn, inventoryBtn, addBtn);
+        configureNodes(isAdmin, adminSectionLabel, staffBtn, systemBtn, logsBtn, delBtn, managBtn);
     }
 
-    @FXML
-    public void showCatalog() {
-        loadView("catalog-view.fxml");
-    }
-
-    @FXML
-    public void showMyLoans() {
-        loadView("loans-view.fxml");
+    private void configureNodes(boolean visible, javafx.scene.Node... nodes) {
+        for (javafx.scene.Node node : nodes) {
+            node.setVisible(visible);
+            node.setManaged(visible);
+        }
     }
 
     private void loadView(String fxml) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/" + fxml));
-            Parent view = loader.load();
-            contentArea.getChildren().setAll(view);
+            contentArea.getChildren().setAll(loader.<javafx.scene.Parent>load());
         } catch (IOException e) {
+            System.err.println("Błąd ładowania widoku: " + fxml);
             e.printStackTrace();
         }
     }
 
-    @FXML
-    private void handleLogout() throws IOException {
+    @FXML private void handleLogout() throws IOException {
         UserSession.logout();
         Stage stage = (Stage) welcomeLabel.getScene().getWindow();
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/login-view.fxml"));
@@ -92,53 +58,15 @@ public class MainController {
         stage.setTitle("Logowanie");
     }
 
-    @FXML
-    public void showUserManagement() {
-        loadView("user-management-view.fxml");
-    }
-
-    @FXML
-    public void showInventory() {
-        loadView("inventory-view.fxml");
-    }
-
-    @FXML
-    private void showProfileSettings() {
-        loadView("profile-settings-view.fxml");
-    }
-
-    @FXML
-    private void showAddUser() {
-        loadView("add-user-view.fxml");
-    }
-
-    @FXML
-    private void showAdminUsers() {
-        loadView("admin-users-view.fxml");
-    }
-
-    @FXML
-    private void showSettings() {
-        loadView("admin-settings-view.fxml");
-    }
-
-    @FXML
-    private void showLogs() {
-        loadView("admin-logs-view.fxml");
-    }
-
-    @FXML
-    private void showStat() {
-        loadView("admin-reports-view.fxml");
-    }
-
-    @FXML
-    private void showDel() {
-        loadView("admin-delete-users-view.fxml");
-    }
-
-    @FXML
-    private void showMang() {
-        loadView("admin-manag-view.fxml");
-    }
+    @FXML public void showCatalog() { loadView("catalog-view.fxml"); }
+    @FXML public void showMyLoans() { loadView("loans-view.fxml"); }
+    @FXML public void showInventory() { loadView("inventory-view.fxml"); }
+    @FXML public void showUserManagement() { loadView("user-management-view.fxml"); }
+    @FXML private void showProfileSettings() { loadView("profile-settings-view.fxml"); }
+    @FXML private void showAddUser() { loadView("add-user-view.fxml"); }
+    @FXML private void showAdminUsers() { loadView("admin-users-view.fxml"); }
+    @FXML private void showSettings() { loadView("admin-settings-view.fxml"); }
+    @FXML private void showLogs() { loadView("admin-logs-view.fxml"); }
+    @FXML private void showDel() { loadView("admin-delete-users-view.fxml"); }
+    @FXML private void showMang() { loadView("admin-manag-view.fxml"); }
 }

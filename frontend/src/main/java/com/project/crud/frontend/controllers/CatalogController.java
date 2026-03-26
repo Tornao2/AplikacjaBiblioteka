@@ -10,7 +10,6 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 
 public class CatalogController {
-
     @FXML private TextField searchField;
     @FXML private TableView<BookDTO> bookTable;
     @FXML private TableColumn<BookDTO, Long> colId;
@@ -21,6 +20,12 @@ public class CatalogController {
 
     @FXML
     public void initialize() {
+        setupColumns();
+        loadMockData();
+        setupSearch();
+    }
+
+    private void setupColumns() {
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colTitle.setCellValueFactory(new PropertyValueFactory<>("title"));
         colAuthor.setCellValueFactory(new PropertyValueFactory<>("author"));
@@ -30,48 +35,39 @@ public class CatalogController {
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         colDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
         colDescription.setCellFactory(tc -> new TableCell<>() {
-            private final Label label = new Label();
-            {
-                label.setWrapText(true);
-                label.maxWidthProperty().bind(tc.widthProperty().subtract(15));
-                label.getStyleClass().add("text");
-                setGraphic(label);
-            }
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
-                    setGraphic(null);
-                    label.setText(null);
+                    setText(null);
                 } else {
-                    label.setText(item);
-                    setGraphic(label);
-                    label.textFillProperty().bind(textFillProperty());
+                    setText(item);
+                    setWrapText(true);
                 }
             }
         });
         bookTable.setPlaceholder(new Label("Brak dostępnych książek w katalogu."));
-        loadMockData();
-        setupSearch();
     }
 
     private void setupSearch() {
-        FilteredList<BookDTO> filteredData = new FilteredList<>(masterData, p -> true);
-        SortedList<BookDTO> sortedData = new SortedList<>(filteredData);
-        sortedData.comparatorProperty().bind(bookTable.comparatorProperty());
-        searchField.textProperty().addListener((obs, old, newVal) -> filteredData.setPredicate(book -> {
-            if (newVal == null || newVal.isEmpty()) return true;
-            String f = newVal.toLowerCase();
-            return book.getTitle().toLowerCase().contains(f)
-                    || book.getAuthor().toLowerCase().contains(f)
-                    || book.getCategory().toLowerCase().contains(f);
+        FilteredList<BookDTO> filtered = new FilteredList<>(masterData, p -> true);
+        searchField.textProperty().addListener((obs, old, val) -> filtered.setPredicate(book -> {
+            if (val == null || val.isBlank()) return true;
+            String f = val.toLowerCase();
+            return book.getTitle().toLowerCase().contains(f) ||
+                    book.getAuthor().toLowerCase().contains(f) ||
+                    book.getCategory().toLowerCase().contains(f);
         }));
-        bookTable.setItems(sortedData);
+        SortedList<BookDTO> sorted = new SortedList<>(filtered);
+        sorted.comparatorProperty().bind(bookTable.comparatorProperty());
+        bookTable.setItems(sorted);
     }
 
     private void loadMockData() {
-        masterData.add(new BookDTO(1L, "Wiedźmin", "Andrzej Sapkowski", "9788375", "Fantasy", "AVAILABLE", "Opis", 1990));
-        masterData.add(new BookDTO(2L, "Rok 1984", "George Orwell", "9780451", "Dystopia", "RENTED", "Opis", 1949));
-        masterData.add(new BookDTO(3L, "Hobbit", "J.R.R. Tolkien", "9788324", "Fantasy", "AVAILABLE", "Opis", 1937));
+        masterData.addAll(
+                new BookDTO(1L, "Wiedźmin", "Andrzej Sapkowski", "9788375", "Fantasy", "AVAILABLE", "Opis", 1990),
+                new BookDTO(2L, "Rok 1984", "George Orwell", "9780451", "Dystopia", "RENTED", "Opis", 1949),
+                new BookDTO(3L, "Hobbit", "J.R.R. Tolkien", "9788324", "Fantasy", "AVAILABLE", "Opis", 1937)
+        );
     }
 }

@@ -3,39 +3,37 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="20" styleClass="root-container" xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.project.crud.frontend.controllers.ProfileController"
-      maxWidth="Infinity">
+<VBox spacing="20" styleClass="root-container"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.project.crud.frontend.controllers.ProfileController">
     <Label text="Ustawienia profilu" styleClass="header-text"/>
-    <VBox spacing="20" styleClass="form-container" maxWidth="Infinity">
+    <VBox spacing="20" styleClass="form-container">
         <Label text="Zmień adres Email" styleClass="stats-label"/>
-        <GridPane hgap="10" vgap="10" maxWidth="Infinity">
+        <GridPane hgap="10" vgap="10">
             <columnConstraints>
                 <ColumnConstraints hgrow="ALWAYS"/>
                 <ColumnConstraints prefWidth="120"/>
             </columnConstraints>
             <TextField fx:id="emailField" promptText="Nowy adres email"
-                       GridPane.columnIndex="0" maxWidth="Infinity" styleClass="text-field"/>
-            <Button text="Aktualizuj" onAction="#handleUpdateEmail"
-                    styleClass="button-primary" GridPane.columnIndex="1" maxWidth="Infinity"/>
+                       GridPane.columnIndex="0" styleClass="text-field" maxWidth="Infinity"/>
+            <Button fx:id="aktButton" text="Aktualizuj" onAction="#handleUpdateEmail"
+                    GridPane.columnIndex="1" styleClass="button-primary" maxWidth="Infinity"/>
         </GridPane>
-        <Separator maxWidth="Infinity"/>
+        <Separator/>
         <Label text="Zmień hasło" styleClass="stats-label"/>
-        <VBox spacing="10" maxWidth="Infinity">
-            <PasswordField fx:id="currentPasswordField" promptText="Obecne hasło" maxWidth="Infinity" styleClass="text-field"/>
-            <PasswordField fx:id="newPasswordField" promptText="Nowe hasło" maxWidth="Infinity" styleClass="text-field"/>
-            <PasswordField fx:id="confirmPasswordField" promptText="Powtórz nowe hasło" maxWidth="Infinity" styleClass="text-field"/>
-            <Button text="Zmień hasło" onAction="#handleUpdatePassword"
+        <VBox spacing="10">
+            <PasswordField fx:id="currentPasswordField" promptText="Obecne hasło" styleClass="text-field"/>
+            <PasswordField fx:id="newPasswordField" promptText="Nowe hasło" styleClass="text-field"/>
+            <PasswordField fx:id="confirmPasswordField" promptText="Powtórz nowe hasło" styleClass="text-field"/>
+            <Button fx:id="chanButton" text="Zmień hasło" onAction="#handleUpdatePassword"
                     styleClass="button-primary" maxWidth="Infinity"/>
         </VBox>
-        <Separator maxWidth="Infinity"/>
-        <VBox spacing="10" maxWidth="Infinity">
+        <Separator/>
+        <VBox spacing="10">
             <HBox styleClass="form-container" style="-fx-border-color: -fx-danger; -fx-border-width: 0 0 0 5;"
                   spacing="20" alignment="CENTER_LEFT">
-                <VBox spacing="5" HBox.hgrow="ALWAYS">
-                    <Label text="Usunięcie użytkownika spowoduje bezpowrotne skasowanie jego danych oraz historii."
-                           wrapText="true" styleClass="stats-label" style="-fx-text-fill: #7f8c8d;"/>
-                </VBox>
+                <Label text="Usunięcie użytkownika spowoduje bezpowrotne skasowanie jego danych oraz historii."
+                       wrapText="true" styleClass="stats-label" style="-fx-text-fill: #7f8c8d;" HBox.hgrow="ALWAYS"/>
             </HBox>
             <Button text="Usuń konto" onAction="#handleDeleteAccount"
                     styleClass="button-outline-danger" maxWidth="Infinity"/>

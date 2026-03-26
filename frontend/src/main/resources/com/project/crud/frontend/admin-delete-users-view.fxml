@@ -3,16 +3,16 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="20" styleClass="root-container" xmlns:fx="http://javafx.com/fxml/1"
+<VBox spacing="20" styleClass="root-container" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.project.crud.frontend.controllers.AdminDeleteUsersController">
-    <Label text="Zarządzanie kontami użytkowników" styleClass="header-text"/>
+    <Label text="Usuwanie użytkowników" styleClass="header-text"/>
     <VBox spacing="15" styleClass="form-container" VBox.vgrow="ALWAYS">
         <HBox spacing="15" alignment="CENTER_LEFT">
             <Label text="Filtruj użytkowników:" styleClass="stats-label"/>
             <TextField fx:id="searchField" promptText="Szukaj po loginie, emailu lub ID..."
                        HBox.hgrow="ALWAYS" styleClass="text-field"/>
         </HBox>
-        <TableView fx:id="usersTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+        <TableView fx:id="usersTable" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn fx:id="colId" text="ID" prefWidth="60"/>
                 <TableColumn fx:id="colUsername" text="Login" prefWidth="150"/>
@@ -23,13 +23,13 @@
             <columnResizePolicy>
                 <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
             </columnResizePolicy>
+            <placeholder>
+                <Label text="Brak zarejestrowanych pracowników spełniających kryteria." />
+            </placeholder>
         </TableView>
     </VBox>
-    <HBox styleClass="form-container" style="-fx-border-color: -fx-danger; -fx-border-width: 0 0 0 5;"
-          spacing="20" alignment="CENTER_LEFT">
-        <VBox spacing="5" HBox.hgrow="ALWAYS">
-            <Label text="Usunięcie użytkownika spowoduje bezpowrotne skasowanie jego danych oraz historii."
-                   wrapText="true" styleClass="stats-label" style="-fx-text-fill: #7f8c8d;"/>
-        </VBox>
+    <HBox styleClass="form-container" style="-fx-border-color: -fx-danger; -fx-border-width: 0 0 0 5;" alignment="CENTER_LEFT">
+        <Label text="Usunięcie użytkownika spowoduje bezpowrotne skasowanie jego danych oraz historii."
+               wrapText="true" styleClass="stats-label" style="-fx-text-fill: #7f8c8d;" HBox.hgrow="ALWAYS"/>
     </HBox>
 </VBox>

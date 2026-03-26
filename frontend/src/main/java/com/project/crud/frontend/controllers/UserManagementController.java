@@ -22,8 +22,7 @@ public class UserManagementController {
     @FXML private TableColumn<LoanDTO, String> colBookTitle, colStatus;
     @FXML private TableColumn<LoanDTO, LocalDate> colDueDate;
     @FXML private TableColumn<LoanDTO, Long> payDue;
-    @FXML private Button returnBookBtn;
-    @FXML private Button openPickerBtn;
+    @FXML private Button returnBookBtn, openPickerBtn;
 
     private final ObservableList<UserDTO> allUsers = FXCollections.observableArrayList();
     private final ObservableList<LoanDTO> allLoans = FXCollections.observableArrayList();
@@ -34,11 +33,8 @@ public class UserManagementController {
         loadMockData();
         setupUserSearch();
         userTable.getSelectionModel().selectedItemProperty().addListener((obs, old, newUser) -> {
-            if (newUser != null) {
-                showLoansForUser(newUser.getId());
-            } else {
-                userLoansTable.setItems(FXCollections.emptyObservableList());
-            }
+            if (newUser != null) showLoansForUser(newUser.getId());
+            else userLoansTable.setItems(FXCollections.emptyObservableList());
         });
         returnBookBtn.disableProperty().bind(userLoansTable.getSelectionModel().selectedItemProperty().isNull());
         openPickerBtn.disableProperty().bind(userTable.getSelectionModel().selectedItemProperty().isNull());
@@ -69,54 +65,52 @@ public class UserManagementController {
         pane.setPrefSize(700, 500);
         ButtonType loanBtnType = new ButtonType("Wypożycz", ButtonBar.ButtonData.OK_DONE);
         pane.getButtonTypes().addAll(loanBtnType, ButtonType.CANCEL);
-        Button loanBtn = (Button) pane.lookupButton(loanBtnType);
-        loanBtn.getStyleClass().add("button-primary");
+        (pane.lookupButton(loanBtnType)).getStyleClass().add("button-primary");
         Button cancelBtn = (Button) pane.lookupButton(ButtonType.CANCEL);
         cancelBtn.getStyleClass().add("button-outline-danger");
         cancelBtn.setText("Anuluj");
-        VBox box = new VBox(15);
+        TableView<BookDTO> table = createPickerTable();
+        TextField search = createPickerSearchField(table);
+        VBox box = new VBox(15, new Label("Wyszukaj dostępną pozycję:"), search, table);
         box.setPadding(new Insets(10));
+        pane.setContent(box);
+        pane.lookupButton(loanBtnType).disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
+        dialog.setResultConverter(btn -> btn == loanBtnType ? table.getSelectionModel().getSelectedItem() : null);
+        dialog.showAndWait().ifPresent(book -> {
+            book.setStatus("RENTED");
+            allLoans.add(LoanDTO.builder()
+                    .userId(selectedUser.getId()).bookId(book.getId()).bookTitle(book.getTitle())
+                    .dueDate(LocalDate.now().plusDays(14)).loanDate(LocalDate.now()).overduePay(0L).build());
+            showLoansForUser(selectedUser.getId());
+            showInfo("Pomyślnie wypożyczono książkę: " + book.getTitle());
+        });
+    }
+
+    private TableView<BookDTO> createPickerTable() {
+        TableView<BookDTO> table = new TableView<>();
+        TableColumn<BookDTO, String> tCol = new TableColumn<>("Tytuł"), aCol = new TableColumn<>("Autor"), iCol = new TableColumn<>("ISBN");
+        tCol.setCellValueFactory(new PropertyValueFactory<>("title"));
+        aCol.setCellValueFactory(new PropertyValueFactory<>("author"));
+        iCol.setCellValueFactory(new PropertyValueFactory<>("isbn"));
+        table.getColumns().addAll(tCol, aCol, iCol);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        return table;
+    }
+
+    private TextField createPickerSearchField(TableView<BookDTO> table) {
         TextField search = new TextField();
         search.setPromptText("Szukaj po tytule, autorze lub ISBN...");
         search.getStyleClass().add("text-field");
         search.setPrefHeight(35);
-        TableView<BookDTO> table = new TableView<>();
-        TableColumn<BookDTO, String> tCol = new TableColumn<>("Tytuł");
-        tCol.setCellValueFactory(new PropertyValueFactory<>("title"));
-        TableColumn<BookDTO, String> aCol = new TableColumn<>("Autor");
-        aCol.setCellValueFactory(new PropertyValueFactory<>("author"));
-        TableColumn<BookDTO, String> iCol = new TableColumn<>("ISBN");
-        iCol.setCellValueFactory(new PropertyValueFactory<>("isbn"));
-        table.getColumns().addAll(tCol, aCol, iCol);
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         FilteredList<BookDTO> available = new FilteredList<>(InventoryController.masterInventory, b -> "AVAILABLE".equals(b.getStatus()));
         search.textProperty().addListener((obs, old, val) -> available.setPredicate(book -> {
             if (val == null || val.isEmpty()) return "AVAILABLE".equals(book.getStatus());
             String f = val.toLowerCase();
-            return "AVAILABLE".equals(book.getStatus()) &&
-                    (book.getTitle().toLowerCase().contains(f) ||
-                            book.getAuthor().toLowerCase().contains(f) ||
-                            book.getIsbn().toLowerCase().contains(f));
+            return "AVAILABLE".equals(book.getStatus()) && (book.getTitle().toLowerCase().contains(f) ||
+                    book.getAuthor().toLowerCase().contains(f) || book.getIsbn().toLowerCase().contains(f));
         }));
         table.setItems(available);
-        loanBtn.disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
-        box.getChildren().addAll(new Label("Wyszukaj dostępną pozycję:"), search, table);
-        pane.setContent(box);
-        dialog.setResultConverter(btn -> btn == loanBtnType ? table.getSelectionModel().getSelectedItem() : null);
-        dialog.showAndWait().ifPresent(book -> {
-            book.setStatus("RENTED");
-            LoanDTO newLoan = LoanDTO.builder()
-                    .userId(selectedUser.getId())
-                    .bookId(book.getId())
-                    .bookTitle(book.getTitle())
-                    .dueDate(LocalDate.now().plusDays(14))
-                    .loanDate(LocalDate.now())
-                    .overduePay(0L)
-                    .build();
-            allLoans.add(newLoan);
-            showLoansForUser(selectedUser.getId());
-            showInfo("Pomyślnie wypożyczono książkę: " + book.getTitle());
-        });
+        return search;
     }
 
     @FXML
@@ -126,10 +120,8 @@ public class UserManagementController {
         loan.setReturnDate(LocalDate.now());
         InventoryController.masterInventory.stream()
                 .filter(b -> b.getId().equals(loan.getBookId()))
-                .findFirst()
-                .ifPresent(b -> b.setStatus("AVAILABLE"));
-        ObservableList<LoanDTO> currentItems = userLoansTable.getItems();
-        if (currentItems instanceof FilteredList<LoanDTO> filtered) {
+                .findFirst().ifPresent(b -> b.setStatus("AVAILABLE"));
+        if (userLoansTable.getItems() instanceof FilteredList<LoanDTO> filtered) {
             var pred = filtered.getPredicate();
             filtered.setPredicate(null);
             filtered.setPredicate(pred);
@@ -138,32 +130,33 @@ public class UserManagementController {
     }
 
     private void showLoansForUser(Long userId) {
-        FilteredList<LoanDTO> activeUserLoans = new FilteredList<>(allLoans,
-                loan -> loan.getUserId().equals(userId) && "AKTYWNE".equals(loan.getStatus()));
-        userLoansTable.setItems(activeUserLoans);
+        userLoansTable.setItems(new FilteredList<>(allLoans,
+                loan -> loan.getUserId().equals(userId) && "AKTYWNE".equals(loan.getStatus())));
     }
 
     private void setupUserSearch() {
         FilteredList<UserDTO> filteredUsers = new FilteredList<>(allUsers, p -> true);
-        userSearchField.textProperty().addListener((obs, old, newVal) -> filteredUsers.setPredicate(user -> {
-            if (newVal == null || newVal.isEmpty()) return true;
-            String f = newVal.toLowerCase();
+        userSearchField.textProperty().addListener((obs, old, val) -> filteredUsers.setPredicate(user -> {
+            if (val == null || val.isEmpty()) return true;
+            String f = val.toLowerCase();
             return user.getFullName().toLowerCase().contains(f) || user.getEmail().toLowerCase().contains(f);
         }));
         userTable.setItems(filteredUsers);
     }
 
     private void loadMockData() {
-        allUsers.add(new UserDTO(1L, "Jan", "Jan", "Kowalski","jan@wp.pl", UserRole.USER));
-        allUsers.add(new UserDTO(2L, "Anna", "Anna", "Nowak","ania@gmail.com", UserRole.ADMIN));
+        allUsers.addAll(
+                new UserDTO(1L, "Jan", "Jan", "Kowalski","jan@wp.pl", UserRole.USER),
+                new UserDTO(2L, "Anna", "Anna", "Nowak","ania@gmail.com", UserRole.ADMIN)
+        );
         InventoryController.masterInventory.add(new BookDTO(105L, "Czysty Kod", "Robert C. Martin", "9788328", "Edukacja", "AVAILABLE", "Podręcznik programowania", 2008));
         allLoans.add(LoanDTO.builder().userId(1L).bookId(101L).bookTitle("Wiedźmin").dueDate(LocalDate.now().plusDays(5)).overduePay(0L).build());
     }
+
     private void showInfo(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, message);
         alert.setTitle("Sukces");
         alert.setHeaderText(null);
-        alert.setContentText(message);
         DialogPane dp = alert.getDialogPane();
         dp.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
         dp.getStyleClass().add("root-container");

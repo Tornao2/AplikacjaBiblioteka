@@ -2,42 +2,32 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
 
-<VBox spacing="20" styleClass="root-container" maxWidth="Infinity" xmlns:fx="http://javafx.com/fxml/1"
-      xmlns="http://javafx.com/fxml/1"
+<VBox spacing="20" styleClass="root-container" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.project.crud.frontend.controllers.AdminUsersController">
-    <Label text="Zarządzanie Kadrą i Uprawnieniami" styleClass="header-text">
-        <font>
-            <Font name="System Bold" size="24.0" />
-        </font>
-    </Label>
-    <VBox spacing="15" styleClass="form-container" maxWidth="Infinity" VBox.vgrow="ALWAYS">
+    <Label text="Zarządzanie pracownikami" styleClass="header-text"/>
+    <VBox spacing="15" styleClass="form-container" VBox.vgrow="ALWAYS">
         <HBox spacing="15" alignment="CENTER_LEFT">
-            <Label text="Szukaj:" />
+            <Label text="Szukaj:"/>
             <TextField fx:id="searchField" promptText="Imię, nazwisko lub login..."
-                       HBox.hgrow="ALWAYS" styleClass="text-field" />
+                       HBox.hgrow="ALWAYS" styleClass="text-field"/>
         </HBox>
-
-        <TableView fx:id="staffTable" maxWidth="Infinity" VBox.vgrow="ALWAYS" styleClass="modern-table" style="-fx-alignment: CENTER;-fx-text-alignment: CENTER;">
+        <TableView fx:id="staffTable" VBox.vgrow="ALWAYS">
             <placeholder>
-                <Label text="Brak zarejestrowanych pracowników spełniających kryteria." />
+                <Label text="Brak zarejestrowanych pracowników spełniających kryteria."/>
             </placeholder>
             <columns>
-                <TableColumn fx:id="colId" text="ID" minWidth="30.0" />
-                <TableColumn fx:id="colFullName" text="Imię i Nazwisko" minWidth="120.0"/>
-                <TableColumn fx:id="colEmail" text="Email" minWidth="140.0" />
-                <TableColumn fx:id="colRole" text="Rola" minWidth="80.0"/>
-                <TableColumn fx:id="colPhone" text="Telefon" minWidth="100.0"/>
-                <TableColumn fx:id="colSalary" text="Wynagrodzenie" minWidth="100.0"/>
-                <TableColumn fx:id="colHireDate" text="Zatrudniony od" minWidth="100.0" />
-                <TableColumn fx:id="colActions" text="Zarządzaj" minWidth="100.0"/>
+                <TableColumn fx:id="colId" text="ID" prefWidth="40"/>
+                <TableColumn fx:id="colFullName" text="Imię i Nazwisko" prefWidth="140"/>
+                <TableColumn fx:id="colEmail" text="Email" prefWidth="180"/>
+                <TableColumn fx:id="colRole" text="Rola" prefWidth="100"/>
+                <TableColumn fx:id="colPhone" text="Telefon" prefWidth="100"/>
+                <TableColumn fx:id="colSalary" text="Pensja" prefWidth="100"/>
+                <TableColumn fx:id="colHireDate" text="Zatrudniony od" prefWidth="120"/>
+                <TableColumn fx:id="colActions" text="Zarządzaj" prefWidth="150"/>
             </columns>
-            <columnResizePolicy>
-                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-            </columnResizePolicy>
         </TableView>
     </VBox>
     <Button text="+ Dodaj Nowego Pracownika" onAction="#handleAddNewStaff"
-            styleClass="button-primary" maxWidth="Infinity" />
+            styleClass="button-primary" maxWidth="Infinity"/>
 </VBox>

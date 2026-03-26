@@ -4,16 +4,15 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.collections.FXCollections?>
 <?import java.lang.String?>
-<?import javafx.geometry.Insets?>
 
-<VBox spacing="20" styleClass="root-container" xmlns:fx="http://javafx.com/fxml/1"
+<VBox spacing="20" styleClass="root-container" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.project.crud.frontend.controllers.AdminFinanceController">
     <Label text="Wydatki i dochody" styleClass="header-text"/>
-    <VBox spacing="20" styleClass="form-container" maxWidth="Infinity">
+    <VBox spacing="20" styleClass="form-container">
         <HBox spacing="15">
             <VBox spacing="5" HBox.hgrow="ALWAYS">
                 <Label text="Typ transakcji" styleClass="stats-label"/>
-                <ComboBox fx:id="typeComboBox" promptText="Wybierz typ..." maxWidth="Infinity" styleClass="combo-box">
+                <ComboBox fx:id="typeComboBox" promptText="Wybierz typ..." maxWidth="Infinity" prefWidth="600" styleClass="combo-box">
                     <items>
                         <FXCollections fx:factory="observableArrayList">
                             <String fx:value="DOCHÓD"/>
@@ -29,19 +28,29 @@
         </HBox>
         <VBox spacing="5">
             <Label text="Tytuł" styleClass="stats-label"/>
-            <TextField fx:id="descriptionArea" promptText="Wpisz szczegóły..." prefHeight="60" styleClass="text-area"/>
+            <TextField fx:id="descriptionArea" promptText="Wpisz szczegóły..." prefHeight="60" styleClass="text-field"/>
         </VBox>
-        <HBox spacing="15" alignment="CENTER_RIGHT">
-            <Button fx:id="saveButton" text="Zapisz zmiany" onAction="#handleSave" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="button-primary" prefHeight="30"/>
-            <Button text="Zresetuj" onAction="#handleCancel" styleClass="button-outline-danger" prefHeight="30"/>
+        <HBox spacing="15">
+            <Button fx:id="saveButton" text="Zapisz zmiany" onAction="#handleSave"
+                    maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="button-primary"/>
+            <Button text="Zresetuj" onAction="#handleCancel" styleClass="button-outline-danger"/>
         </HBox>
     </VBox>
     <VBox spacing="10" styleClass="form-container" VBox.vgrow="ALWAYS">
-        <padding>
-            <Insets top="15" right="15" bottom="25" left="15"/>
-        </padding>
-        <Label text="Historia operacji" styleClass="stats-label"/>
-        <TableView fx:id="financeTable" VBox.vgrow="ALWAYS" styleClass="table-view">
+        <HBox spacing="15" alignment="CENTER_LEFT">
+            <Label text="Historia operacji" styleClass="stats-label"/>
+            <Region HBox.hgrow="ALWAYS" />
+            <Label text="Od:"/>
+            <DatePicker fx:id="filterDateFrom" promptText="Od..." prefWidth="130"/>
+            <Label text="Do:"/>
+            <DatePicker fx:id="filterDateTo" promptText="Do..." prefWidth="130"/>
+        </HBox>
+        <HBox spacing="25" alignment="CENTER_LEFT" style="-fx-background-color: #f4f4f4; -fx-padding: 10; -fx-background-radius: 5;">
+            <Label fx:id="countLabel" text="Operacji: 0" style="-fx-font-weight: bold;"/>
+            <Label fx:id="incomeLabel" text="Dochody: 0.00 PLN" style="-fx-font-weight: bold; -fx-text-fill: #27ae60;"/>
+            <Label fx:id="expenseLabel" text="Straty: 0.00 PLN" style="-fx-font-weight: bold; -fx-text-fill: #e74c3c;"/>
+        </HBox>
+        <TableView fx:id="financeTable" VBox.vgrow="ALWAYS">
             <columns>
                 <TableColumn fx:id="colDate" text="Data" prefWidth="100"/>
                 <TableColumn fx:id="colType" text="Typ" prefWidth="100"/>

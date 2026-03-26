@@ -84,13 +84,12 @@
     -fx-padding: 3 8;
 }
 
-.button-primary:hover {
-    -fx-background-color:
-    -fx-primary-dark;
+.button-primary:hover, .button-primary-table:hover {
+    -fx-background-color:-fx-primary-dark;
     -fx-effect: dropshadow(gaussian, rgba(45,90,39,0.3), 8, 0, 0, 3);
 }
 
-.button-outline-danger:hover {
+.button-outline-danger:hover, .button-outline-danger-table:hover {
     -fx-background-color: -fx-danger;
     -fx-text-fill: white;
 }
@@ -104,8 +103,6 @@
     -fx-background-color: transparent;
     -fx-border-color: #dee2e6;
     -fx-border-radius: 8;
-    -fx-background-insets: 0;
-    -fx-padding: 0;
 }
 
 .table-view .column-header {
