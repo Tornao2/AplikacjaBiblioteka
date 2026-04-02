@@ -59,6 +59,7 @@ public class AdminFinanceController {
                 else if ("STRATA".equals(item.getType())) setStyle("-fx-background-color: rgba(231, 76, 60, 0.15);");
             }
         });
+        financeTable.setPlaceholder(new Label("Brak transakcji w systemie."));
     }
 
     private void setupFiltering() {
@@ -154,7 +155,21 @@ public class AdminFinanceController {
     @FXML private void handleCancel() { clearFields(); }
 
     private void clearFields() {
-        typeComboBox.setValue(null); amountField.clear(); descriptionArea.clear();
+        typeComboBox.getSelectionModel().select(-1);
+        typeComboBox.setValue(null);
+        typeComboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(typeComboBox.getPromptText());
+                } else {
+                    setText(item);
+                }
+            }
+        });
+        amountField.clear();
+        descriptionArea.clear();
         financeTable.getSelectionModel().clearSelection();
     }
 }

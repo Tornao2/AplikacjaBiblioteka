@@ -28,6 +28,6 @@
             </columns>
         </TableView>
     </VBox>
-    <Button text="+ Dodaj Nowego Pracownika" onAction="#handleAddNewStaff"
+    <Button text="Dodaj Nowego Pracownika" onAction="#handleAddNewStaff"
             styleClass="button-primary" maxWidth="Infinity"/>
 </VBox>

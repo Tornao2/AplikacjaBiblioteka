@@ -32,7 +32,7 @@
         <VBox spacing="10">
             <HBox styleClass="form-container" style="-fx-border-color: -fx-danger; -fx-border-width: 0 0 0 5;"
                   spacing="20" alignment="CENTER_LEFT">
-                <Label text="Usunięcie użytkownika spowoduje bezpowrotne skasowanie jego danych oraz historii."
+                <Label text="Usunięcie konta spowoduje bezpowrotne skasowanie powiązanych danych oraz historii."
                        wrapText="true" styleClass="stats-label" style="-fx-text-fill: #7f8c8d;" HBox.hgrow="ALWAYS"/>
             </HBox>
             <Button text="Usuń konto" onAction="#handleDeleteAccount"

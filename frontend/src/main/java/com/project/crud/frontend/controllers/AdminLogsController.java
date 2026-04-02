@@ -1,6 +1,7 @@
 package com.project.crud.frontend.controllers;
 
 import com.project.crud.frontend.model.SystemLogDTO;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -8,14 +9,11 @@ import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import java.io.File;
-import java.io.PrintWriter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class AdminLogsController {
-
     @FXML private TableView<SystemLogDTO> logTable;
     @FXML private TableColumn<SystemLogDTO, LocalDateTime> colTimestamp;
     @FXML private TableColumn<SystemLogDTO, String> colUser, colAction, colDetails, colSeverity;
@@ -48,72 +46,61 @@ public class AdminLogsController {
                 setText((empty || item == null) ? null : formatter.format(item));
             }
         });
+        colDetails.setCellFactory(tc -> new TableCell<>() {
+            private final javafx.scene.text.Text text = new javafx.scene.text.Text();
+            {
+                text.wrappingWidthProperty().bind(tc.widthProperty().subtract(20));
+                text.getStyleClass().add("text");
+            }
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                } else {
+                    text.setText(item);
+                    text.fillProperty().bind(textFillProperty());
+                    setGraphic(text);
+                }
+            }
+        });
     }
 
     private void setupLiveFiltering() {
         FilteredList<SystemLogDTO> filteredData = new FilteredList<>(masterData, p -> true);
-        Runnable updatePredicate = () -> filteredData.setPredicate(log -> {
-            String search = logSearchField.getText() == null ? "" : logSearchField.getText().toLowerCase();
-            String sev = severityFilter.getValue();
-            LocalDate dFrom = dateFrom.getValue(), dTo = dateTo.getValue(), logD = log.getTimestamp().toLocalDate();
-            boolean matchesText = log.getUser().toLowerCase().contains(search) ||
-                    log.getAction().toLowerCase().contains(search) ||
-                    log.getDetails().toLowerCase().contains(search);
-            boolean matchesSev = "WSZYSTKIE".equals(sev) || log.getSeverity().equals(sev);
-            boolean matchesDate = (dFrom == null || !logD.isBefore(dFrom)) && (dTo == null || !logD.isAfter(dTo));
-            return matchesText && matchesSev && matchesDate;
-        });
-        logSearchField.textProperty().addListener(o -> updatePredicate.run());
-        severityFilter.valueProperty().addListener(o -> updatePredicate.run());
-        dateFrom.valueProperty().addListener(o -> updatePredicate.run());
-        dateTo.valueProperty().addListener(o -> updatePredicate.run());
+        ChangeListener<Object> filterListener = (obs, old, val) -> {
+            filteredData.setPredicate(log -> {
+                String searchText = logSearchField.getText() == null ? "" : logSearchField.getText().toLowerCase().trim();
+                boolean matchesText = searchText.isEmpty() ||
+                        log.getUser().toLowerCase().contains(searchText) ||
+                        log.getAction().toLowerCase().contains(searchText) ||
+                        log.getDetails().toLowerCase().contains(searchText);
+                String selectedSev = severityFilter.getValue();
+                boolean matchesSev = selectedSev == null || "WSZYSTKIE".equals(selectedSev) ||
+                        log.getSeverity().equalsIgnoreCase(selectedSev);
+                LocalDate dFrom = dateFrom.getValue();
+                LocalDate dTo = dateTo.getValue();
+                LocalDate logDate = log.getTimestamp().toLocalDate();
+                boolean matchesDate = (dFrom == null || !logDate.isBefore(dFrom)) &&
+                        (dTo == null || !logDate.isAfter(dTo));
+                return matchesText && matchesSev && matchesDate;
+            });
+        };
+        logSearchField.textProperty().addListener(filterListener);
+        severityFilter.valueProperty().addListener(filterListener);
+        dateFrom.valueProperty().addListener(filterListener);
+        dateTo.valueProperty().addListener(filterListener);
         SortedList<SystemLogDTO> sortedData = new SortedList<>(filteredData);
         sortedData.comparatorProperty().bind(logTable.comparatorProperty());
         logTable.setItems(sortedData);
-    }
-
-    @FXML private void handleClearLogs() { masterData.clear(); }
-
-    @FXML
-    private void handleExport() {
-        if (logTable.getItems().isEmpty()) {
-            showAlert("Błąd", "Brak danych do eksportu.");
-            return;
-        }
-        File file = new File("logi_systemowe.csv");
-        try (PrintWriter writer = new PrintWriter(file)) {
-            writer.println("Data;Uzytkownik;Akcja;Szczegoly;Poziom");
-            for (SystemLogDTO log : logTable.getItems()) {
-                writer.printf("%s;%s;%s;%s;%s%n", log.getTimestamp().format(formatter), log.getUser(),
-                        log.getAction(), log.getDetails().replace(";", ","), log.getSeverity());
-            }
-            showAlert("Sukces", "Zapisano: " + file.getAbsolutePath());
-        } catch (Exception e) {
-            showAlert("Błąd", "Nie można utworzyć pliku CSV.");
-        }
     }
 
     private void loadMockLogs() {
         masterData.addAll(
                 new SystemLogDTO(LocalDateTime.now(), "admin", "LOGIN", "Pomyślne logowanie", "INFO"),
                 new SystemLogDTO(LocalDateTime.now().minusMinutes(5), "marta_b", "BOOK_ADD", "Dodano: Solaris", "INFO"),
-                new SystemLogDTO(LocalDateTime.now().minusHours(2), "system", "DB_ERROR", "Błąd połączenia", "CRITICAL"),
+                new SystemLogDTO(LocalDateTime.now().minusHours(2), "system", "DB_ERROR", "Błąd połączenia połączenia połączenia połączenia", "CRITICAL"),
                 new SystemLogDTO(LocalDateTime.now().minusDays(1), "jan_kowalski", "AUTH_FAIL", "Złe hasło", "WARNING")
         );
-    }
-
-    private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, content);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        DialogPane pane = alert.getDialogPane();
-        pane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
-        pane.getStyleClass().add("root-container");
-        Button ok = (Button) pane.lookupButton(ButtonType.OK);
-        if (ok != null) {
-            ok.getStyleClass().add("button-primary");
-            ok.setText("Rozumiem");
-        }
-        alert.showAndWait();
     }
 }

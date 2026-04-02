@@ -48,10 +48,21 @@ public class InventoryController {
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         colDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
         colDescription.setCellFactory(tc -> new TableCell<>() {
-            @Override protected void updateItem(String item, boolean empty) {
+            private final javafx.scene.text.Text text = new javafx.scene.text.Text();
+            {
+                text.wrappingWidthProperty().bind(tc.widthProperty().subtract(20));
+                text.getStyleClass().add("text");
+            }
+            @Override
+            protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) setText(null);
-                else { setText(item); setWrapText(true); }
+                if (empty || item == null) {
+                    setGraphic(null);
+                } else {
+                    text.setText(item);
+                    text.fillProperty().bind(textFillProperty());
+                    setGraphic(text);
+                }
             }
         });
         setupActions();
@@ -147,7 +158,23 @@ public class InventoryController {
     }
 
     private void clearFields() {
-        titleField.clear(); authorField.clear(); isbnField.clear();
-        yearField.clear(); descriptionArea.clear(); categoryCombo.getSelectionModel().clearSelection();
+        titleField.clear();
+        authorField.clear();
+        isbnField.clear();
+        yearField.clear();
+        descriptionArea.clear();
+        categoryCombo.getSelectionModel().select(-1);
+        categoryCombo.setValue(null);
+        categoryCombo.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(categoryCombo.getPromptText());
+                } else {
+                    setText(item);
+                }
+            }
+        });
     }
 }

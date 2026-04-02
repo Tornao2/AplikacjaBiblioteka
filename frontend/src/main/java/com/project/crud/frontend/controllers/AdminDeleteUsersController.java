@@ -16,7 +16,7 @@ public class AdminDeleteUsersController {
     @FXML private TextField searchField;
     @FXML private TableView<UserDTO> usersTable;
     @FXML private TableColumn<UserDTO, Long> colId;
-    @FXML private TableColumn<UserDTO, String> colUsername, colEmail, colRole;
+    @FXML private TableColumn<UserDTO, String> colUsername, colFullName, colEmail, colRole;
     @FXML private TableColumn<UserDTO, Void> colActions;
 
     private final ObservableList<UserDTO> masterData = FXCollections.observableArrayList();
@@ -26,15 +26,17 @@ public class AdminDeleteUsersController {
         setupTableColumns();
         setupFiltering();
         loadInitialData();
+        usersTable.setPlaceholder(new Label("Nie znaleziono użytkowników."));
     }
 
     private void setupTableColumns() {
         colId.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getId()));
         colUsername.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getUsername()));
+        colFullName.setCellValueFactory(d -> new SimpleStringProperty(
+                d.getValue().getFirstName() + " " + d.getValue().getLastName()));
         colEmail.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getEmail()));
         colRole.setCellValueFactory(d -> new SimpleStringProperty(
                 d.getValue().getRole() != null ? d.getValue().getRole().name() : "BRAK"));
-
         setupActions();
     }
 
@@ -63,12 +65,18 @@ public class AdminDeleteUsersController {
             String filter = newVal.toLowerCase();
             return user.getUsername().toLowerCase().contains(filter) ||
                     user.getEmail().toLowerCase().contains(filter) ||
+                    user.getFirstName().toLowerCase().contains(filter) ||
+                    user.getLastName().toLowerCase().contains(filter) ||
                     String.valueOf(user.getId()).contains(filter);
         }));
         usersTable.setItems(filteredData);
     }
 
     private void handleDeleteRequest(UserDTO user) {
+        if (!canDeleteUser(user)) {
+            showError("Nie można usunąć użytkownika. Upewnij się, że nie ma on aktywnych wypożyczeń.");
+            return;
+        }
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Potwierdzenie");
         alert.setHeaderText("Usunąć użytkownika " + user.getUsername() + "?");
@@ -83,6 +91,20 @@ public class AdminDeleteUsersController {
         });
     }
 
+    private boolean canDeleteUser(UserDTO user) {
+        // Tutaj w przyszłości dodać sprawdzenie czy możńa usunac
+        return true;
+    }
+
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, message);
+        DialogPane pane = alert.getDialogPane();
+        pane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
+        pane.getStyleClass().add("root-container");
+        styleButton(pane, ButtonType.OK, "Rozumiem", "button-primary");
+        alert.showAndWait();
+    }
+
     private void styleButton(DialogPane pane, ButtonType type, String text, String styleClass) {
         Button btn = (Button) pane.lookupButton(type);
         if (btn != null) {
@@ -93,9 +115,9 @@ public class AdminDeleteUsersController {
 
     private void loadInitialData() {
         masterData.addAll(
-                UserDTO.builder().id(1L).username("admin_super").email("admin@library.com").role(UserRole.ADMIN).build(),
-                UserDTO.builder().id(2L).username("jan_nowak").email("j.nowak@gmail.com").role(UserRole.USER).build(),
-                UserDTO.builder().id(3L).username("bibliotekarz1").email("staff@library.com").role(UserRole.LIBRARIAN).build()
+                UserDTO.builder().id(1L).username("admin_super").firstName("Super").lastName("Admin").email("admin@library.com").role(UserRole.ADMIN).build(),
+                UserDTO.builder().id(2L).username("jan_nowak").firstName("Jan").lastName("Nowak").email("j.nowak@gmail.com").role(UserRole.USER).build(),
+                UserDTO.builder().id(3L).username("bibliotekarz1").firstName("Marta").lastName("Zielińska").email("staff@library.com").role(UserRole.LIBRARIAN).build()
         );
     }
 }

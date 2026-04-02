@@ -12,7 +12,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 public class CatalogController {
     @FXML private TextField searchField;
     @FXML private TableView<BookDTO> bookTable;
-    @FXML private TableColumn<BookDTO, Long> colId;
     @FXML private TableColumn<BookDTO, String> colTitle, colAuthor, colStatus, colIsbn, colCategory, colDescription;
     @FXML private TableColumn<BookDTO, Integer> colYear;
 
@@ -26,7 +25,6 @@ public class CatalogController {
     }
 
     private void setupColumns() {
-        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colTitle.setCellValueFactory(new PropertyValueFactory<>("title"));
         colAuthor.setCellValueFactory(new PropertyValueFactory<>("author"));
         colIsbn.setCellValueFactory(new PropertyValueFactory<>("isbn"));
@@ -35,14 +33,20 @@ public class CatalogController {
         colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
         colDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
         colDescription.setCellFactory(tc -> new TableCell<>() {
+            private final javafx.scene.text.Text text = new javafx.scene.text.Text();
+            {
+                text.wrappingWidthProperty().bind(tc.widthProperty().subtract(20));
+                text.getStyleClass().add("text");
+            }
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
-                    setText(null);
+                    setGraphic(null);
                 } else {
-                    setText(item);
-                    setWrapText(true);
+                    text.setText(item);
+                    text.fillProperty().bind(textFillProperty());
+                    setGraphic(text);
                 }
             }
         });
@@ -66,7 +70,7 @@ public class CatalogController {
     private void loadMockData() {
         masterData.addAll(
                 new BookDTO(1L, "Wiedźmin", "Andrzej Sapkowski", "9788375", "Fantasy", "AVAILABLE", "Opis", 1990),
-                new BookDTO(2L, "Rok 1984", "George Orwell", "9780451", "Dystopia", "RENTED", "Opis", 1949),
+                new BookDTO(2L, "Rok 1984", "George Orwell", "9780451", "Dystopia", "RENTED", "OpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpis", 1949),
                 new BookDTO(3L, "Hobbit", "J.R.R. Tolkien", "9788324", "Fantasy", "AVAILABLE", "Opis", 1937)
         );
     }

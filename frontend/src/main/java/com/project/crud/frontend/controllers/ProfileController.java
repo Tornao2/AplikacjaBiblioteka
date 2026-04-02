@@ -7,6 +7,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+
 public class ProfileController {
     @FXML private TextField emailField;
     @FXML private PasswordField currentPasswordField, newPasswordField, confirmPasswordField;
@@ -23,8 +25,20 @@ public class ProfileController {
                 .or(confirmPasswordField.textProperty().isEmpty()));
     }
 
+    @FXML private void handleLogout() {
+        try {
+            UserSession.logout();
+            Stage stage = (Stage) emailField.getScene().getWindow();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/login-view.fxml"));
+            stage.setScene(new Scene(loader.load(), 1200, 900));
+            stage.setTitle("Logowanie");
+        } catch (Exception e) {
+            showAlert("Błąd", "Nie udało się powrócić do logowania.", Alert.AlertType.ERROR);
+        }
+    }
+
     @FXML
-    private void handleUpdateEmail() {
+    private void handleUpdateEmail() throws IOException {
         String newEmail = emailField.getText().trim();
         if (newEmail.length() >= 5 && newEmail.contains("@")) {
             UserSession.getInstance().setUserEmail(newEmail.toLowerCase());
@@ -35,7 +49,7 @@ public class ProfileController {
     }
 
     @FXML
-    private void handleUpdatePassword() {
+    private void handleUpdatePassword() throws IOException {
         String next = newPasswordField.getText();
         if (!next.equals(confirmPasswordField.getText())) {
             showAlert("Błąd", "Nowe hasła nie są identyczne.", Alert.AlertType.ERROR);
@@ -46,6 +60,7 @@ public class ProfileController {
             return;
         }
         showAlert("Sukces", "Hasło zostało zmienione.", Alert.AlertType.INFORMATION);
+        handleLogout();
         clearPasswordFields();
     }
 
@@ -57,23 +72,15 @@ public class ProfileController {
         ok.setText("Usuń bezpowrotnie");
         ok.getStyleClass().add("button-primary");
         alert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK) {
-                UserSession.logout();
-                redirectToLogin();
+            if (response == ButtonType.OK ) {
+                if (true == true) {
+                    //DODANIE POTEM SPRAWDZANIA CZY JAKAŚ KSIĄŻKA NIE ODDANA ETC
+                    handleLogout();
+                } else {
+                    showAlert("Błąd", "Do konta są przypisane nieoddane książki.", Alert.AlertType.ERROR);
+                }
             }
         });
-    }
-
-    private void redirectToLogin() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/login-view.fxml"));
-            Stage stage = (Stage) emailField.getScene().getWindow();
-            stage.setScene(new Scene(loader.load(), 1200, 900));
-            stage.setTitle("Logowanie");
-            stage.centerOnScreen();
-        } catch (Exception e) {
-            showAlert("Błąd", "Nie udało się powrócić do logowania.", Alert.AlertType.ERROR);
-        }
     }
 
     private void clearPasswordFields() {
