@@ -38,7 +38,7 @@ public class ProfileController {
     }
 
     @FXML
-    private void handleUpdateEmail() throws IOException {
+    private void handleUpdateEmail() {
         String newEmail = emailField.getText().trim();
         if (newEmail.length() >= 5 && newEmail.contains("@")) {
             UserSession.getInstance().setUserEmail(newEmail.toLowerCase());
@@ -49,7 +49,7 @@ public class ProfileController {
     }
 
     @FXML
-    private void handleUpdatePassword() throws IOException {
+    private void handleUpdatePassword(){
         String next = newPasswordField.getText();
         if (!next.equals(confirmPasswordField.getText())) {
             showAlert("Błąd", "Nowe hasła nie są identyczne.", Alert.AlertType.ERROR);

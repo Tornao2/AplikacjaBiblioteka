@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface BookRepository extends JpaRepository<com.project.crud.backend.entity.Book, Long> {
-    List<com.project.crud.backend.entity.Book> findByTitleContainingIgnoreCase(String title);
-    List<com.project.crud.backend.entity.Book> findByAuthorContainingIgnoreCase(String author);
-    Optional<com.project.crud.backend.entity.Book> findByIsbn(String isbn);
+public interface BookRepository extends JpaRepository<com.biblioteka.backend.entity.Book, Long> {
+    List<com.biblioteka.backend.entity.Book> findByTitleContainingIgnoreCase(String title);
+    List<com.biblioteka.backend.entity.Book> findByAuthorContainingIgnoreCase(String author);
+    Optional<com.biblioteka.backend.entity.Book> findByIsbn(String isbn);
 }
