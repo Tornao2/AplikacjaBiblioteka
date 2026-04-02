@@ -1,0 +1,13 @@
+package com.biblioteka.backend.repository;
+
+import com.biblioteka.backend.entity.SystemLog;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import java.util.List;
+
+@Repository
+public interface SystemLogRepository extends JpaRepository<SystemLog, Long> {
+    List<SystemLog> findAllByOrderByTimestampDesc();
+    List<SystemLog> findBySeverityIgnoreCase(String severity);
+    List<SystemLog> findByUserContainingIgnoreCase(String user);
+}

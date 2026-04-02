@@ -74,7 +74,7 @@ public class AdminDeleteUsersController {
 
     private void handleDeleteRequest(UserDTO user) {
         if (!canDeleteUser(user)) {
-            showError("Nie można usunąć użytkownika. Upewnij się, że nie ma on aktywnych wypożyczeń.");
+            showError();
             return;
         }
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -96,8 +96,8 @@ public class AdminDeleteUsersController {
         return true;
     }
 
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR, message);
+    private void showError() {
+        Alert alert = new Alert(Alert.AlertType.ERROR, "Nie można usunąć użytkownika. Upewnij się, że nie ma on aktywnych wypożyczeń.");
         DialogPane pane = alert.getDialogPane();
         pane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
         pane.getStyleClass().add("root-container");

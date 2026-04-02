@@ -1,5 +1,6 @@
 package com.project.crud.frontend.controllers;
 
+import com.project.crud.frontend.model.SystemSettingsDTO;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
@@ -8,18 +9,38 @@ public class AdminSettingsController {
     @FXML private TextField penaltyRateField;
     @FXML private Button saveBtn;
 
+    private SystemSettingsDTO currentSettings;
+
     @FXML
     public void initialize() {
+        setupFactories();
+        setupListeners();
+        loadSettings(SystemSettingsDTO.builder()
+                .maxLoanDuration(30)
+                .userLoanLimit(5)
+                .dailyPenaltyRate(0.50)
+                .build());
+    }
+
+    private void setupFactories() {
         loanDurationSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 365, 30));
         userLimitSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, 5));
+    }
+
+    private void setupListeners() {
         penaltyRateField.textProperty().addListener((obs, old, val) -> {
             if (!val.matches("\\d*(\\.\\d*)?")) penaltyRateField.setText(old);
             updateSaveButtonState();
         });
         setupIntegerOnly(loanDurationSpinner);
         setupIntegerOnly(userLimitSpinner);
+    }
 
-        penaltyRateField.setText("0.50");
+    private void loadSettings(SystemSettingsDTO settings) {
+        this.currentSettings = settings;
+        loanDurationSpinner.getValueFactory().setValue(settings.getMaxLoanDuration());
+        userLimitSpinner.getValueFactory().setValue(settings.getUserLoanLimit());
+        penaltyRateField.setText(String.valueOf(settings.getDailyPenaltyRate()));
     }
 
     private void setupIntegerOnly(Spinner<Integer> s) {
@@ -40,9 +61,10 @@ public class AdminSettingsController {
     @FXML
     private void handleSaveSettings() {
         try {
-            loanDurationSpinner.getValueFactory().setValue(Integer.parseInt(loanDurationSpinner.getEditor().getText()));
-            userLimitSpinner.getValueFactory().setValue(Integer.parseInt(userLimitSpinner.getEditor().getText()));
-            showAlert(Alert.AlertType.INFORMATION, "Sukces", "Ustawienia zapisane.");
+            currentSettings.setMaxLoanDuration(Integer.parseInt(loanDurationSpinner.getEditor().getText()));
+            currentSettings.setUserLoanLimit(Integer.parseInt(userLimitSpinner.getEditor().getText()));
+            currentSettings.setDailyPenaltyRate(Double.parseDouble(penaltyRateField.getText()));
+            showAlert(Alert.AlertType.INFORMATION, "Sukces", "Ustawienia zapisane w modelu DTO.");
         } catch (Exception e) {
             showAlert(Alert.AlertType.ERROR, "Błąd", "Nieprawidłowe dane!");
         }
@@ -50,9 +72,11 @@ public class AdminSettingsController {
 
     @FXML
     private void handleReset() {
-        loanDurationSpinner.getValueFactory().setValue(30);
-        userLimitSpinner.getValueFactory().setValue(5);
-        penaltyRateField.setText("0.50");
+        loadSettings(SystemSettingsDTO.builder()
+                .maxLoanDuration(30)
+                .userLoanLimit(5)
+                .dailyPenaltyRate(0.50)
+                .build());
     }
 
     private void showAlert(Alert.AlertType type, String title, String msg) {

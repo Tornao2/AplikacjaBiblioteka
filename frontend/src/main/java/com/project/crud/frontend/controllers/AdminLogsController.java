@@ -68,24 +68,22 @@ public class AdminLogsController {
 
     private void setupLiveFiltering() {
         FilteredList<SystemLogDTO> filteredData = new FilteredList<>(masterData, p -> true);
-        ChangeListener<Object> filterListener = (obs, old, val) -> {
-            filteredData.setPredicate(log -> {
-                String searchText = logSearchField.getText() == null ? "" : logSearchField.getText().toLowerCase().trim();
-                boolean matchesText = searchText.isEmpty() ||
-                        log.getUser().toLowerCase().contains(searchText) ||
-                        log.getAction().toLowerCase().contains(searchText) ||
-                        log.getDetails().toLowerCase().contains(searchText);
-                String selectedSev = severityFilter.getValue();
-                boolean matchesSev = selectedSev == null || "WSZYSTKIE".equals(selectedSev) ||
-                        log.getSeverity().equalsIgnoreCase(selectedSev);
-                LocalDate dFrom = dateFrom.getValue();
-                LocalDate dTo = dateTo.getValue();
-                LocalDate logDate = log.getTimestamp().toLocalDate();
-                boolean matchesDate = (dFrom == null || !logDate.isBefore(dFrom)) &&
-                        (dTo == null || !logDate.isAfter(dTo));
-                return matchesText && matchesSev && matchesDate;
-            });
-        };
+        ChangeListener<Object> filterListener = (obs, old, val) -> filteredData.setPredicate(log -> {
+            String searchText = logSearchField.getText() == null ? "" : logSearchField.getText().toLowerCase().trim();
+            boolean matchesText = searchText.isEmpty() ||
+                    log.getUser().toLowerCase().contains(searchText) ||
+                    log.getAction().toLowerCase().contains(searchText) ||
+                    log.getDetails().toLowerCase().contains(searchText);
+            String selectedSev = severityFilter.getValue();
+            boolean matchesSev = selectedSev == null || "WSZYSTKIE".equals(selectedSev) ||
+                    log.getSeverity().equalsIgnoreCase(selectedSev);
+            LocalDate dFrom = dateFrom.getValue();
+            LocalDate dTo = dateTo.getValue();
+            LocalDate logDate = log.getTimestamp().toLocalDate();
+            boolean matchesDate = (dFrom == null || !logDate.isBefore(dFrom)) &&
+                    (dTo == null || !logDate.isAfter(dTo));
+            return matchesText && matchesSev && matchesDate;
+        });
         logSearchField.textProperty().addListener(filterListener);
         severityFilter.valueProperty().addListener(filterListener);
         dateFrom.valueProperty().addListener(filterListener);
