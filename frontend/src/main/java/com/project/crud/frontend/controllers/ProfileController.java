@@ -7,8 +7,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-
 public class ProfileController {
     @FXML private TextField emailField;
     @FXML private PasswordField currentPasswordField, newPasswordField, confirmPasswordField;

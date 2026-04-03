@@ -29,4 +29,7 @@ public class User {
     private UserRole role;
     @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private Staff staffDetails;
+    public String getFullName() {
+        return (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
+    }
 }
