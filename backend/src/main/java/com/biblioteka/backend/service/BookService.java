@@ -28,17 +28,23 @@ public class BookService {
 
     @Transactional
     public BookDTO saveBook(BookDTO dto) {
+        Book book;
         boolean isUpdate = dto.getId() != null;
-        Book book = Book.builder()
-                .id(dto.getId())
-                .title(dto.getTitle())
-                .author(dto.getAuthor())
-                .isbn(dto.getIsbn())
-                .category(dto.getCategory())
-                .status(dto.getStatus() != null ? dto.getStatus() : "AVAILABLE")
-                .description(dto.getDescription())
-                .releaseYear(dto.getReleaseYear())
-                .build();
+        if (isUpdate) {
+            book = bookRepository.findById(dto.getId())
+                    .orElseThrow(() -> new RuntimeException("Nie znaleziono książki o ID: " + dto.getId()));
+            book.setTitle(dto.getTitle());
+            book.setAuthor(dto.getAuthor());
+            book.setIsbn(dto.getIsbn());
+            book.setCategory(dto.getCategory());
+            book.setDescription(dto.getDescription());
+            book.setReleaseYear(dto.getReleaseYear());
+            if (dto.getStatus() != null) {
+                book.setStatus(dto.getStatus());
+            }
+        } else {
+            book = mapToEntity(dto);
+        }
         Book saved = bookRepository.save(book);
         String action = isUpdate ? "BOOK_UPDATED" : "BOOK_ADDED";
         logService.addLog("SYSTEM", action, "Książka: " + saved.getTitle(), "INFO");
@@ -56,6 +62,18 @@ public class BookService {
             bookRepository.delete(book);
             logService.addLog("SYSTEM", "BOOK_DELETED", "Usunięto: " + book.getTitle(), "WARNING");
         });
+    }
+
+    private Book mapToEntity(BookDTO dto) {
+        return Book.builder()
+                .title(dto.getTitle())
+                .author(dto.getAuthor())
+                .isbn(dto.getIsbn())
+                .category(dto.getCategory())
+                .status(dto.getStatus() != null ? dto.getStatus() : "AVAILABLE")
+                .description(dto.getDescription())
+                .releaseYear(dto.getReleaseYear())
+                .build();
     }
 
     private BookDTO mapToDTO(Book entity) {

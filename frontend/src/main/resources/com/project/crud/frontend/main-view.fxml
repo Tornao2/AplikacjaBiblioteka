@@ -32,6 +32,16 @@
         </VBox>
     </left>
     <center>
-        <StackPane fx:id="contentArea" styleClass="content-pane"/>
+        <StackPane>
+            <StackPane fx:id="contentArea" />
+            <VBox fx:id="globalLoadingOverlay"
+                  alignment="CENTER"
+                  visible="false"
+                  managed="false"
+                  style="-fx-background-color: rgba(255,255,255,0.7);">
+                <ProgressIndicator prefWidth="60" prefHeight="60" />
+                <Label text="Pobieranie danych..." style="-fx-padding: 10; -fx-font-weight: bold;"/>
+            </VBox>
+        </StackPane>
     </center>
 </BorderPane>

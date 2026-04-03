@@ -16,10 +16,11 @@ public class Finance {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false)
+    @Column(name = "transaction_date", nullable = false)
     private LocalDate date;
-    @Column(nullable = false, length = 50)
-    private String type;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 10)
+    private FinanceType type;
     @Column(precision = 12, scale = 2)
     private BigDecimal amount;
     @Column(length = 500)

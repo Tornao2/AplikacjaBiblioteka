@@ -2,12 +2,14 @@ package com.project.crud.frontend.controllers;
 
 import com.project.crud.frontend.auth.UserSession;
 import com.project.crud.frontend.model.UserRole;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import java.io.IOException;
 
@@ -15,9 +17,12 @@ public class MainController {
     @FXML private Button staffSearchBtn, inventoryBtn, staffBtn, managBtn, addBtn, delBtn, logsBtn, systemBtn;
     @FXML private StackPane contentArea;
     @FXML private Label welcomeLabel, adminSectionLabel, librarianSectionLabel, userSectionLabel;
+    @FXML private VBox globalLoadingOverlay;
+    private static MainController instance;
 
     @FXML
     public void initialize() {
+        instance = this;
         UserSession session = UserSession.getInstance();
         if (session != null) {
             welcomeLabel.setText("Zalogowano jako: " + session.getUsername());
@@ -31,6 +36,18 @@ public class MainController {
         boolean isAdmin = (role == UserRole.ADMIN);
         configureNodes(isStaff, librarianSectionLabel, userSectionLabel, staffSearchBtn, inventoryBtn, addBtn);
         configureNodes(isAdmin, adminSectionLabel, staffBtn, systemBtn, logsBtn, delBtn, managBtn);
+    }
+
+    public static void setLoading(boolean isLoading) {
+        if (instance != null && instance.globalLoadingOverlay != null) {
+            Platform.runLater(() -> {
+                instance.globalLoadingOverlay.setVisible(isLoading);
+                instance.globalLoadingOverlay.setManaged(isLoading);
+                if (isLoading) {
+                    instance.globalLoadingOverlay.toFront();
+                }
+            });
+        }
     }
 
     private void configureNodes(boolean visible, javafx.scene.Node... nodes) {

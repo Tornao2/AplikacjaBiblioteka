@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public class FinanceDTO {
     private Long id;
     private LocalDate date;
-    private String type;
+    private FinanceType type;
     private Double amount;
     private String description;
 }

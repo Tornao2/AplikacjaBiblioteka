@@ -1,6 +1,7 @@
 package com.project.crud.frontend.controllers;
 
 import com.project.crud.frontend.model.FinanceDTO;
+import com.project.crud.frontend.model.FinanceType;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -16,14 +17,15 @@ import javafx.scene.layout.HBox;
 import java.time.LocalDate;
 
 public class AdminFinanceController {
-    @FXML private ComboBox<String> typeComboBox;
+    @FXML private ComboBox<FinanceType> typeComboBox;
     @FXML private TextField amountField, descriptionArea;
     @FXML private Button saveButton;
     @FXML private DatePicker filterDateFrom, filterDateTo;
     @FXML private Label countLabel, incomeLabel, expenseLabel;
     @FXML private TableView<FinanceDTO> financeTable;
     @FXML private TableColumn<FinanceDTO, LocalDate> colDate;
-    @FXML private TableColumn<FinanceDTO, String> colType, colDesc;
+    @FXML private TableColumn<FinanceDTO, FinanceType> colType;
+    @FXML private TableColumn<FinanceDTO, String> colDesc;
     @FXML private TableColumn<FinanceDTO, Double> colAmount;
     @FXML private TableColumn<FinanceDTO, Void> colActions;
 
@@ -32,6 +34,7 @@ public class AdminFinanceController {
 
     @FXML
     public void initialize() {
+        typeComboBox.setItems(FXCollections.observableArrayList(FinanceType.values()));
         setupTable();
         setupFiltering();
         amountField.textProperty().addListener((obs, old, val) -> {
@@ -46,7 +49,7 @@ public class AdminFinanceController {
 
     private void setupTable() {
         colDate.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getDate()));
-        colType.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getType()));
+        colType.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getType()));
         colAmount.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getAmount()));
         colDesc.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getDescription()));
         setupActions();
@@ -54,9 +57,13 @@ public class AdminFinanceController {
             @Override
             protected void updateItem(FinanceDTO item, boolean empty) {
                 super.updateItem(item, empty);
-                if (item == null || empty) setStyle("");
-                else if ("DOCHÓD".equals(item.getType())) setStyle("-fx-background-color: rgba(39, 174, 96, 0.15);");
-                else if ("STRATA".equals(item.getType())) setStyle("-fx-background-color: rgba(231, 76, 60, 0.15);");
+                if (item == null || empty) {
+                    setStyle("");
+                } else if (FinanceType.INCOME.equals(item.getType())) {
+                    setStyle("-fx-background-color: rgba(39, 174, 96, 0.15);");
+                } else if (FinanceType.EXPENSE.equals(item.getType())) {
+                    setStyle("-fx-background-color: rgba(231, 76, 60, 0.15);");
+                }
             }
         });
         financeTable.setPlaceholder(new Label("Brak transakcji w systemie."));
@@ -77,8 +84,12 @@ public class AdminFinanceController {
             LocalDate from = filterDateFrom.getValue(), to = filterDateTo.getValue(), date = item.getDate();
             return (from == null || !date.isBefore(from)) && (to == null || !date.isAfter(to));
         });
-        double income = filteredData.stream().filter(i -> "DOCHÓD".equals(i.getType())).mapToDouble(FinanceDTO::getAmount).sum();
-        double expense = filteredData.stream().filter(i -> "STRATA".equals(i.getType())).mapToDouble(FinanceDTO::getAmount).sum();
+        double income = filteredData.stream()
+                .filter(i -> FinanceType.INCOME.equals(i.getType()))
+                .mapToDouble(FinanceDTO::getAmount).sum();
+        double expense = filteredData.stream()
+                .filter(i -> FinanceType.EXPENSE.equals(i.getType()))
+                .mapToDouble(FinanceDTO::getAmount).sum();
         countLabel.setText("Operacji: " + filteredData.size());
         incomeLabel.setText(String.format("Dochody: %.2f PLN", income));
         expenseLabel.setText(String.format("Straty: %.2f PLN", expense));
@@ -105,33 +116,52 @@ public class AdminFinanceController {
     @FXML
     private void handleSave() {
         masterData.add(FinanceDTO.builder()
-                .id(System.currentTimeMillis()).date(LocalDate.now())
-                .type(typeComboBox.getValue()).amount(Double.parseDouble(amountField.getText()))
-                .description(descriptionArea.getText()).build());
+                .id(System.currentTimeMillis())
+                .date(LocalDate.now())
+                .type(typeComboBox.getValue())
+                .amount(Double.parseDouble(amountField.getText()))
+                .description(descriptionArea.getText())
+                .build());
         updateFilterAndStats();
         clearFields();
     }
 
     private void showEditDialog(FinanceDTO f) {
         Dialog<FinanceDTO> dialog = new Dialog<>();
-        dialog.setTitle("Edycja");
+        dialog.setTitle("Edycja wpisu");
         ButtonType saveType = new ButtonType("Zapisz", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(saveType, ButtonType.CANCEL);
         styleControl(dialog, "Zapisz");
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10); grid.setPadding(new Insets(20));
-        ComboBox<String> eType = new ComboBox<>(typeComboBox.getItems()); eType.setValue(f.getType());
-        TextField eAmount = new TextField(String.valueOf(f.getAmount())), eDesc = new TextField(f.getDescription());
+        ComboBox<FinanceType> eType = new ComboBox<>(FXCollections.observableArrayList(FinanceType.values()));
+        eType.setValue(f.getType());
+        TextField eAmount = new TextField(String.valueOf(f.getAmount()));
+        TextField eDesc = new TextField(f.getDescription());
+        eAmount.textProperty().addListener((obs, old, val) -> {
+            if (!val.matches("\\d*(\\.\\d*)?")) eAmount.setText(old);
+        });
         grid.add(new Label("Typ:"), 0, 0); grid.add(eType, 1, 0);
         grid.add(new Label("Kwota:"), 0, 1); grid.add(eAmount, 1, 1);
         grid.add(new Label("Tytuł:"), 0, 2); grid.add(eDesc, 1, 2);
         dialog.getDialogPane().setContent(grid);
+        Button saveBtn = (Button) dialog.getDialogPane().lookupButton(saveType);
+        saveBtn.disableProperty().bind(
+                eType.valueProperty().isNull()
+                        .or(eAmount.textProperty().isEmpty())
+                        .or(eDesc.textProperty().isEmpty())
+        );
         dialog.setResultConverter(b -> b == saveType ? updateFinance(f, eType, eAmount, eDesc) : null);
-        dialog.showAndWait().ifPresent(r -> { financeTable.refresh(); updateFilterAndStats(); });
+        dialog.showAndWait().ifPresent(r -> {
+            financeTable.refresh();
+            updateFilterAndStats();
+        });
     }
 
-    private FinanceDTO updateFinance(FinanceDTO f, ComboBox<String> t, TextField a, TextField d) {
-        f.setType(t.getValue()); f.setAmount(Double.parseDouble(a.getText())); f.setDescription(d.getText());
+    private FinanceDTO updateFinance(FinanceDTO f, ComboBox<FinanceType> t, TextField a, TextField d) {
+        f.setType(t.getValue());
+        f.setAmount(Double.parseDouble(a.getText()));
+        f.setDescription(d.getText());
         return f;
     }
 
@@ -157,14 +187,14 @@ public class AdminFinanceController {
     private void clearFields() {
         typeComboBox.getSelectionModel().select(-1);
         typeComboBox.setValue(null);
-        typeComboBox.setButtonCell(new ListCell<>() {
+        typeComboBox.setButtonCell(new ListCell<FinanceType>() {
             @Override
-            protected void updateItem(String item, boolean empty) {
+            protected void updateItem(FinanceType item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
                     setText(typeComboBox.getPromptText());
                 } else {
-                    setText(item);
+                    setText(item.toString());
                 }
             }
         });

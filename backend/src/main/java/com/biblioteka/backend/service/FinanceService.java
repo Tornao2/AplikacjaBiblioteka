@@ -22,6 +22,7 @@ public class FinanceService {
     public List<FinanceDTO> getAllFinances() {
         return financeRepository.findAll()
                 .stream()
+                .sorted((f1, f2) -> f2.getDate().compareTo(f1.getDate())) // Od najnowszych
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
