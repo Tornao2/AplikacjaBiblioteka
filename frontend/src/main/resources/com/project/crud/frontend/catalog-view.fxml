@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.net.URL?>
@@ -11,8 +10,7 @@
     </stylesheets>
     <Label text="Katalog książek" styleClass="header-text"/>
     <HBox styleClass="stats-box">
-        <TextField fx:id="searchField" promptText="Szukaj po tytule, autorze lub kategorii..."
-                   HBox.hgrow="ALWAYS" styleClass="text-field" />
+        <TextField fx:id="searchField" promptText="Szukaj po tytule, autorze lub kategorii..." HBox.hgrow="ALWAYS" />
     </HBox>
     <TableView fx:id="bookTable" VBox.vgrow="ALWAYS">
         <columns>

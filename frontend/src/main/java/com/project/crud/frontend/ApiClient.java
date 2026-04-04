@@ -2,145 +2,99 @@ package com.project.crud.frontend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.project.crud.frontend.auth.UserSession;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.scene.control.Alert;
-import javafx.scene.control.DialogPane;
 import javafx.stage.Stage;
 
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.net.http.*;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class ApiClient {
     private static final String BASE_URL = "http://localhost:8080/api";
-    private final HttpClient client;
-    private final ObjectMapper mapper;
+    private final HttpClient client = HttpClient.newHttpClient();
+    private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     private final Node viewNode;
 
     public ApiClient(Node viewNode) {
         this.viewNode = viewNode;
-        this.client = HttpClient.newHttpClient();
-        this.mapper = new ObjectMapper();
-        this.mapper.registerModule(new JavaTimeModule());
     }
 
-    private void handleCriticalError(Throwable ex) {
-        Platform.runLater(this::loadErrorScreen);
-    }
-
-    private void showSimpleErrorAlert() {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Błędne dane");
-        alert.setHeaderText(null);
-        alert.setContentText("Serwer odrzucił wprowadzone dane. Sprawdź limity i spróbuj ponownie.");
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
-        dialogPane.getStyleClass().add("root-container");
-        alert.showAndWait();
-    }
-
-    public <T> CompletableFuture<T> get(String endpoint, Class<T> responseType) {
-        HttpRequest request = HttpRequest.newBuilder()
+    private HttpRequest.Builder createBuilder(String endpoint) {
+        var builder = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + endpoint))
-                .GET()
-                .build();
-        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(response -> {
-                    try {
-                        validateResponse(response);
-                        return mapper.readValue(response.body(), responseType);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .exceptionally(ex -> {
-                    Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-                    String msg = cause.getMessage();
-                    if (msg == null || !msg.contains("400")) {
-                        handleCriticalError(cause);
-                    }
-                    throw new RuntimeException(cause);
-                });
+                .header("Content-Type", "application/json");
+
+        UserSession session = UserSession.getInstance();
+        if (session != null && session.getToken() != null) {
+            builder.header("Authorization", "Bearer " + session.getToken().getToken());
+        }
+        return builder;
     }
 
-    public <T> CompletableFuture<Object> getList(String endpoint, Class<T> responseType) {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL + endpoint))
-                .GET()
-                .build();
-        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenApply(response -> {
-                    try {
-                        validateResponse(response);
-                        return mapper.readValue(response.body(),
-                                mapper.getTypeFactory().constructCollectionType(List.class, responseType));
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                })
-                .exceptionally(ex -> {
-                    Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-                    String msg = cause.getMessage();
-                    if (msg == null || !msg.contains("400")) {
-                        handleCriticalError(cause);
-                    }
-                    throw new RuntimeException(cause);
-                });
+    public <T> CompletableFuture<T> get(String endpoint, Class<T> type) {
+        return execute(createBuilder(endpoint).GET().build(), type);
     }
 
-    public <T> CompletableFuture<T> send(String endpoint, String method, Object body, Class<T> responseType) {
+    public <T> CompletableFuture<List<T>> getList(String endpoint, Class<T> type) {
+        var req = createBuilder(endpoint).GET().build();
+        var listType = mapper.getTypeFactory().constructCollectionType(List.class, type);
+        return client.sendAsync(req, HttpResponse.BodyHandlers.ofString())
+                .thenApply(res -> {
+                    validateResponse(res);
+                    try {
+                        return mapper.<List<T>>readValue(res.body(), listType);
+                    } catch (Exception e) { throw new RuntimeException(e); }
+                })
+                .exceptionally(this::handleEx);
+    }
+
+    public <T> CompletableFuture<T> send(String endpoint, String method, Object body, Class<T> type) {
         try {
-            String json = mapper.writeValueAsString(body);
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(BASE_URL + endpoint))
-                    .header("Content-Type", "application/json")
-                    .method(method, HttpRequest.BodyPublishers.ofString(json))
+            var req = createBuilder(endpoint)
+                    .method(method, HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
                     .build();
-
-            return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenApply(response -> {
-                        try {
-                            validateResponse(response);
-                            return responseType != null ? mapper.readValue(response.body(), responseType) : null;
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    })
-                    .exceptionally(ex -> {
-                        Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-                        String msg = cause.getMessage();
-                        if (msg == null || !msg.contains("400")) {
-                            handleCriticalError(cause);
-                        }
-                        throw new RuntimeException(cause);
-                    });
+            return execute(req, type);
         } catch (Exception e) {
-            handleCriticalError(e);
+            loadErrorScreen();
             return CompletableFuture.failedFuture(e);
         }
     }
 
-    private void loadErrorScreen() {
-        try {
-            if (viewNode.getScene() == null) return;
-            Stage stage = (Stage) viewNode.getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/error-connection-view.fxml"));
-            Parent root = loader.load();
-            stage.getScene().setRoot(root);
-        } catch (Exception e) {
-            System.err.println("Krytyczny błąd: " + e.getMessage());
-        }
+    private <T> CompletableFuture<T> execute(HttpRequest req, Class<T> type) {
+        return client.sendAsync(req, HttpResponse.BodyHandlers.ofString())
+                .thenApply(res -> {
+                    validateResponse(res);
+                    try {
+                        return (res.body().isEmpty() || type == Void.class) ? null : mapper.readValue(res.body(), type);
+                    } catch (Exception e) { throw new RuntimeException(e); }
+                })
+                .exceptionally(this::handleEx);
     }
 
-    private void validateResponse(HttpResponse<String> response) {
-        if (response.statusCode() >= 400) {
-            throw new RuntimeException(String.valueOf(response.statusCode()));
+    private void validateResponse(HttpResponse<String> res) {
+        if (res.statusCode() >= 400) throw new RuntimeException(String.valueOf(res.statusCode()));
+    }
+
+    private <T> T handleEx(Throwable ex) {
+        var cause = ex.getCause() != null ? ex.getCause() : ex;
+        var msg = cause.getMessage();
+        if (msg == null || !List.of("400", "401", "403").contains(msg)) {
+            Platform.runLater(this::loadErrorScreen);
         }
+        return null;
+    }
+
+    private void loadErrorScreen() {
+        try {
+            var scene = viewNode.getScene();
+            if (scene == null) return;
+            Parent root = new FXMLLoader(getClass().getResource("error-connection-view.fxml")).load();
+            (scene.getWindow()).getScene().setRoot(root);
+        } catch (Exception e) { e.printStackTrace(); }
     }
 }

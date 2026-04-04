@@ -1,11 +1,13 @@
 package com.project.crud.frontend.controllers;
 
 import com.project.crud.frontend.auth.UserSession;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import java.util.stream.Stream;
 
 public class ProfileController {
     @FXML private TextField emailField;
@@ -14,20 +16,23 @@ public class ProfileController {
 
     @FXML
     public void initialize() {
-        String currentEmail = UserSession.getInstance().getUserEmail();
+        String currentEmail = UserSession.getInstance().getToken().getEmail();
         if (currentEmail != null) emailField.setText(currentEmail);
         aktButton.disableProperty().bind(emailField.textProperty().isEmpty()
-                .or(emailField.textProperty().isEqualTo(currentEmail)));
-        chanButton.disableProperty().bind(currentPasswordField.textProperty().isEmpty()
-                .or(newPasswordField.textProperty().isEmpty())
-                .or(confirmPasswordField.textProperty().isEmpty()));
+                .or(emailField.textProperty().isEqualTo(currentEmail != null ? currentEmail : "")));
+        chanButton.disableProperty().bind(Bindings.createBooleanBinding(
+                () -> Stream.of(currentPasswordField, newPasswordField, confirmPasswordField)
+                        .anyMatch(f -> f.getText().isEmpty()),
+                currentPasswordField.textProperty(), newPasswordField.textProperty(), confirmPasswordField.textProperty()
+        ));
     }
 
-    @FXML private void handleLogout() {
+    @FXML
+    private void handleLogout() {
         try {
             UserSession.logout();
             Stage stage = (Stage) emailField.getScene().getWindow();
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/login-view.fxml"));
+            var loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/login-view.fxml"));
             stage.setScene(new Scene(loader.load(), 1200, 900));
             stage.setTitle("Logowanie");
         } catch (Exception e) {
@@ -37,9 +42,9 @@ public class ProfileController {
 
     @FXML
     private void handleUpdateEmail() {
-        String newEmail = emailField.getText().trim();
-        if (newEmail.length() >= 5 && newEmail.contains("@")) {
-            UserSession.getInstance().setUserEmail(newEmail.toLowerCase());
+        String mail = emailField.getText().trim();
+        if (mail.length() >= 5 && mail.contains("@")) {
+            UserSession.getInstance().getToken().setEmail(mail.toLowerCase());
             showAlert("Sukces", "Adres email został zaktualizowany.", Alert.AlertType.INFORMATION);
         } else {
             showAlert("Błąd", "Podaj poprawny adres email (min. 5 znaków).", Alert.AlertType.ERROR);
@@ -47,67 +52,43 @@ public class ProfileController {
     }
 
     @FXML
-    private void handleUpdatePassword(){
+    private void handleUpdatePassword() {
         String next = newPasswordField.getText();
         if (!next.equals(confirmPasswordField.getText())) {
             showAlert("Błąd", "Nowe hasła nie są identyczne.", Alert.AlertType.ERROR);
-            return;
-        }
-        if (next.length() < 5) {
+        } else if (next.length() < 5) {
             showAlert("Błąd", "Hasło musi mieć przynajmniej 5 znaków.", Alert.AlertType.ERROR);
-            return;
+        } else {
+            showAlert("Sukces", "Hasło zostało zmienione.", Alert.AlertType.INFORMATION);
+            handleLogout();
         }
-        showAlert("Sukces", "Hasło zostało zmienione.", Alert.AlertType.INFORMATION);
-        handleLogout();
-        clearPasswordFields();
     }
 
     @FXML
     private void handleDeleteAccount() {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Ta operacja jest nieodwracalna. Czy na pewno usunąć konto?");
-        styleAlert(alert, "Usuwanie konta");
-        Button ok = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
+        Alert a = new Alert(Alert.AlertType.CONFIRMATION, "Ta operacja jest nieodwracalna. Czy na pewno usunąć konto?");
+        styleAlert(a, "Usuwanie konta");
+        Button ok = (Button) a.getDialogPane().lookupButton(ButtonType.OK);
         ok.setText("Usuń bezpowrotnie");
         ok.getStyleClass().add("button-primary");
-        alert.showAndWait().ifPresent(response -> {
-            if (response == ButtonType.OK ) {
-                if (true == true) {
-                    //DODANIE POTEM SPRAWDZANIA CZY JAKAŚ KSIĄŻKA NIE ODDANA ETC
-                    handleLogout();
-                } else {
-                    showAlert("Błąd", "Do konta są przypisane nieoddane książki.", Alert.AlertType.ERROR);
-                }
-            }
-        });
-    }
-
-    private void clearPasswordFields() {
-        currentPasswordField.clear();
-        newPasswordField.clear();
-        confirmPasswordField.clear();
+        a.showAndWait().filter(r -> r == ButtonType.OK).ifPresent(r -> handleLogout());
     }
 
     private void showAlert(String title, String content, Alert.AlertType type) {
-        Alert alert = new Alert(type, content);
-        styleAlert(alert, title);
-        alert.showAndWait();
+        Alert a = new Alert(type, content);
+        styleAlert(a, title);
+        a.showAndWait();
     }
 
-    private void styleAlert(Alert alert, String title) {
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        DialogPane dp = alert.getDialogPane();
-        dp.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
-        dp.getStyleClass().add("root-container");
-        Button ok = (Button) dp.lookupButton(ButtonType.OK);
-        if (ok != null) {
-            ok.getStyleClass().add("button-primary");
-            ok.setText("Rozumiem");
-        }
-        Button cancel = (Button) dp.lookupButton(ButtonType.CANCEL);
-        if (cancel != null) {
-            cancel.getStyleClass().add("button-outline-danger");
-            cancel.setText("Anuluj");
-        }
+    private void styleAlert(Alert a, String title) {
+        a.setTitle(title);
+        a.setHeaderText(null);
+        DialogPane p = a.getDialogPane();
+        p.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
+        p.getStyleClass().add("root-container");
+        Button ok = (Button) p.lookupButton(ButtonType.OK);
+        if (ok != null) { ok.getStyleClass().add("button-primary"); ok.setText("Rozumiem"); }
+        Button can = (Button) p.lookupButton(ButtonType.CANCEL);
+        if (can != null) { can.getStyleClass().add("button-outline-danger"); can.setText("Anuluj"); }
     }
 }

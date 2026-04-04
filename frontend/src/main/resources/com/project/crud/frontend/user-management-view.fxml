@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.net.URL?>
@@ -11,35 +10,27 @@
     </stylesheets>
     <Label text="Zarządzanie użytkownikami" styleClass="header-text"/>
     <VBox spacing="10" VBox.vgrow="ALWAYS">
-        <TextField fx:id="userSearchField" promptText="Wyszukaj użytkownika..." styleClass="text-field" />
+        <TextField fx:id="userSearchField" promptText="Wyszukaj użytkownika..." />
         <TableView fx:id="userTable" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="colUserName" text="Imię i Nazwisko" prefWidth="200"/>
-                <TableColumn fx:id="colUserEmail" text="Email" prefWidth="250"/>
+                <TableColumn fx:id="colUserName" text="Imię i Nazwisko" />
+                <TableColumn fx:id="colUserEmail" text="Email" />
             </columns>
-            <columnResizePolicy>
-                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-            </columnResizePolicy>
+            <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
         </TableView>
     </VBox>
     <Label text="Aktywne wypożyczenia wybranego użytkownika" styleClass="stats-label"/>
     <TableView fx:id="userLoansTable" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn fx:id="colBookTitle" text="Tytuł Książki" prefWidth="300"/>
-            <TableColumn fx:id="colDueDate" text="Termin zwrotu" prefWidth="150"/>
-            <TableColumn fx:id="colStatus" text="Status" prefWidth="100"/>
-            <TableColumn fx:id="payDue" text="Do zapłaty" prefWidth="100"/>
+            <TableColumn fx:id="colBookTitle" text="Tytuł Książki" />
+            <TableColumn fx:id="colDueDate" text="Termin zwrotu" />
+            <TableColumn fx:id="colStatus" text="Status" />
+            <TableColumn fx:id="payDue" text="Do zapłaty" />
         </columns>
-        <columnResizePolicy>
-            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-        </columnResizePolicy>
+        <columnResizePolicy><TableView fx:constant="CONSTRAINED_RESIZE_POLICY" /></columnResizePolicy>
     </TableView>
     <Button fx:id="returnBookBtn" text="Przyjmij zwrot książki"
             maxWidth="Infinity" onAction="#handleReturnAction" styleClass="button-outline-danger"/>
-    <Button fx:id="openPickerBtn"
-            text="Wyszukaj książkę do wypożyczenia"
-            onAction="#handleOpenBookPicker"
-            maxWidth="Infinity"
-            styleClass="button-primary"
-            prefHeight="45"/>
+    <Button fx:id="openPickerBtn" text="Wyszukaj książkę do wypożyczenia"
+            maxWidth="Infinity" prefHeight="45" onAction="#handleOpenBookPicker" styleClass="button-primary"/>
 </VBox>

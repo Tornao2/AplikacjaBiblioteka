@@ -1,6 +1,5 @@
 package com.project.crud.frontend.auth;
 
-import com.project.crud.frontend.model.UserRole;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,19 +7,21 @@ import lombok.Setter;
 public class UserSession {
     @Getter
     private static UserSession instance;
-    private String username;
-    private String userEmail;
-    private UserRole role;
-    private UserSession(String username, String email, UserRole role) {
-        this.username = username;
-        this.userEmail = email;
-        this.role = role;
+    private AuthResponse token;
+
+    private UserSession(AuthResponse token) {
+        this.token = token;
     }
-    public static void login(String user, String email, UserRole role) {
-        instance = new UserSession(user, email, role);
+
+    public static void login(AuthResponse token) {
+        instance = new UserSession(token);
     }
 
     public static void logout() {
         instance = null;
+    }
+
+    public AuthResponse getToken() {
+        return (instance != null) ? instance.token : null;
     }
 }

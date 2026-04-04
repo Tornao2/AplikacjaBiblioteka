@@ -24,5 +24,5 @@ public class Staff {
     @Column(name = "hire_date", nullable = false)
     private LocalDate hireDate;
     @Column(nullable = false, precision = 12, scale = 2)
-    private BigDecimal salary; // BigDecimal dla precyzji finansowej w Oracle
+    private BigDecimal salary;
 }

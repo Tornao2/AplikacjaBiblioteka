@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -8,10 +7,10 @@
     <Label text="Dziennik Zdarzeń" styleClass="header-text"/>
     <VBox spacing="15" styleClass="form-container" VBox.vgrow="ALWAYS">
         <HBox spacing="15" alignment="CENTER_LEFT">
-            <TextField fx:id="logSearchField" promptText="Szukaj w treści logów..." HBox.hgrow="ALWAYS" styleClass="text-field"/>
+            <TextField fx:id="logSearchField" promptText="Szukaj w treści logów..." HBox.hgrow="ALWAYS" />
             <DatePicker fx:id="dateFrom" promptText="Od..." prefWidth="130"/>
             <DatePicker fx:id="dateTo" promptText="Do..." prefWidth="130"/>
-            <ComboBox fx:id="severityFilter" promptText="Poziom" prefWidth="150" styleClass="combo-box"/>
+            <ComboBox fx:id="severityFilter" promptText="Poziom" prefWidth="150" />
         </HBox>
         <TableView fx:id="logTable" VBox.vgrow="ALWAYS">
             <columns>
@@ -21,9 +20,7 @@
                 <TableColumn fx:id="colDetails" text="Szczegóły" prefWidth="345"/>
                 <TableColumn fx:id="colSeverity" text="Poziom" prefWidth="90" />
             </columns>
-            <placeholder>
-                <Label text="Brak logów spełniających kryteria." />
-            </placeholder>
+            <placeholder><Label text="Brak logów." /></placeholder>
         </TableView>
     </VBox>
 </VBox>

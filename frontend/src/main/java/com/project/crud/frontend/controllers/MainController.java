@@ -5,6 +5,8 @@ import com.project.crud.frontend.model.UserRole;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -12,6 +14,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import java.io.IOException;
+import java.util.stream.Stream;
 
 public class MainController {
     @FXML private Button staffSearchBtn, inventoryBtn, staffBtn, managBtn, addBtn, delBtn, logsBtn, systemBtn;
@@ -25,17 +28,14 @@ public class MainController {
         instance = this;
         UserSession session = UserSession.getInstance();
         if (session != null) {
-            welcomeLabel.setText("Zalogowano jako: " + session.getUsername());
-            applySecurityPolicy(session.getRole());
+            welcomeLabel.setText("Zalogowano jako: " + session.getToken().getUsername());
+            UserRole role = session.getToken().getRole();
+            boolean isStaff = role == UserRole.LIBRARIAN || role == UserRole.ADMIN;
+            boolean isAdmin = role == UserRole.ADMIN;
+            configureNodes(isStaff, librarianSectionLabel, userSectionLabel, staffSearchBtn, inventoryBtn, addBtn);
+            configureNodes(isAdmin, adminSectionLabel, staffBtn, systemBtn, logsBtn, delBtn, managBtn);
         }
         showCatalog();
-    }
-
-    private void applySecurityPolicy(UserRole role) {
-        boolean isStaff = (role == UserRole.LIBRARIAN || role == UserRole.ADMIN);
-        boolean isAdmin = (role == UserRole.ADMIN);
-        configureNodes(isStaff, librarianSectionLabel, userSectionLabel, staffSearchBtn, inventoryBtn, addBtn);
-        configureNodes(isAdmin, adminSectionLabel, staffBtn, systemBtn, logsBtn, delBtn, managBtn);
     }
 
     public static void setLoading(boolean isLoading) {
@@ -43,34 +43,26 @@ public class MainController {
             Platform.runLater(() -> {
                 instance.globalLoadingOverlay.setVisible(isLoading);
                 instance.globalLoadingOverlay.setManaged(isLoading);
-                if (isLoading) {
-                    instance.globalLoadingOverlay.toFront();
-                }
+                if (isLoading) instance.globalLoadingOverlay.toFront();
             });
         }
     }
 
-    private void configureNodes(boolean visible, javafx.scene.Node... nodes) {
-        for (javafx.scene.Node node : nodes) {
-            node.setVisible(visible);
-            node.setManaged(visible);
-        }
+    private void configureNodes(boolean visible, Node... nodes) {
+        Stream.of(nodes).forEach(n -> { n.setVisible(visible); n.setManaged(visible); });
     }
 
     private void loadView(String fxml) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/" + fxml));
-            contentArea.getChildren().setAll(loader.<javafx.scene.Parent>load());
-        } catch (IOException e) {
-            System.err.println("Błąd ładowania widoku: " + fxml);
-            e.printStackTrace();
-        }
+            contentArea.getChildren().setAll((Parent) loader.load());
+        } catch (IOException e) { e.printStackTrace(); }
     }
 
     @FXML private void handleLogout() throws IOException {
         UserSession.logout();
         Stage stage = (Stage) welcomeLabel.getScene().getWindow();
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/login-view.fxml"));
+        var loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/login-view.fxml"));
         stage.setScene(new Scene(loader.load(), 1200, 900));
         stage.setTitle("Logowanie");
     }

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -11,11 +10,11 @@
             <Label text="Zasady Wypożyczeń i Kar" styleClass="stats-label"/>
             <GridPane hgap="20" vgap="15">
                 <columnConstraints>
-                    <ColumnConstraints hgrow="ALWAYS" percentWidth="70.0" />
-                    <ColumnConstraints hgrow="ALWAYS" percentWidth="30.0" />
+                    <ColumnConstraints hgrow="ALWAYS" percentWidth="70" />
+                    <ColumnConstraints hgrow="ALWAYS" percentWidth="30" />
                 </columnConstraints>
-                <Label text="Domyślny czas wypożyczenia (dni):" GridPane.rowIndex="0"/>
-                <Spinner fx:id="loanDurationSpinner" editable="true" maxWidth="Infinity" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                <Label text="Domyślny czas wypożyczenia (dni):" />
+                <Spinner fx:id="loanDurationSpinner" editable="true" maxWidth="Infinity" GridPane.columnIndex="1"/>
                 <Label text="Stawka kary za dzień zwłoki (PLN):" GridPane.rowIndex="1"/>
                 <TextField fx:id="penaltyRateField" promptText="np. 0.50" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
             </GridPane>
@@ -25,16 +24,16 @@
             <Label text="Limity Wypożyczonych Książek" styleClass="stats-label"/>
             <GridPane hgap="20" vgap="15">
                 <columnConstraints>
-                    <ColumnConstraints hgrow="ALWAYS" percentWidth="70.0" />
-                    <ColumnConstraints hgrow="ALWAYS" percentWidth="30.0" />
+                    <ColumnConstraints hgrow="ALWAYS" percentWidth="70" />
+                    <ColumnConstraints hgrow="ALWAYS" percentWidth="30" />
                 </columnConstraints>
-                <Label text="Limit dla Użytkownika:" GridPane.rowIndex="0"/>
-                <Spinner fx:id="userLimitSpinner" editable="true" maxWidth="Infinity" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                <Label text="Limit dla Użytkownika:" />
+                <Spinner fx:id="userLimitSpinner" editable="true" maxWidth="Infinity" GridPane.columnIndex="1"/>
             </GridPane>
         </VBox>
         <HBox spacing="15">
             <Button fx:id="saveBtn" text="Zapisz ustawienia" onAction="#handleSaveSettings"
-                    styleClass="button-primary" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                    styleClass="button-primary" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
             <Button text="Przywróć domyślne" onAction="#handleReset" styleClass="button-outline-danger"/>
         </HBox>
     </VBox>

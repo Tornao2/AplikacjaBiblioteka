@@ -28,7 +28,6 @@ public class SystemSettingsService {
         settings.setMaxLoanDuration(dto.getMaxLoanDuration());
         settings.setUserLoanLimit(dto.getUserLoanLimit());
         settings.setDailyPenaltyRate(dto.getDailyPenaltyRate());
-
         SystemSettings saved = settingsRepository.save(settings);
         return mapToDTO(saved);
     }

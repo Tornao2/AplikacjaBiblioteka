@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Text?>
-
 <?import java.net.URL?>
+
 <VBox spacing="20" styleClass="root-container" alignment="CENTER" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.project.crud.frontend.controllers.ConnectionErrorController">
     <stylesheets>
@@ -14,7 +13,7 @@
     <VBox spacing="30" alignment="CENTER" styleClass="form-container" maxWidth="500">
         <StackPane>
             <Circle radius="40" style="-fx-fill: rgba(192, 57, 43, 0.1); -fx-stroke: -fx-danger; -fx-stroke-width: 2;"/>
-            <Label text="!" style="-fx-font-size: 40px; -fx-text-fill: -fx-danger; -fx-font-weight: bold;"/>
+            <Label text="!" style="-fx-font-size: 40; -fx-text-fill: -fx-danger; -fx-font-weight: bold;"/>
         </StackPane>
         <VBox spacing="10" alignment="CENTER">
             <Label text="Błąd połączenia" styleClass="header-text" style="-fx-text-fill: -fx-danger;"/>
@@ -22,7 +21,7 @@
         </VBox>
         <Text text="Nie można nawiązać połączenia z usługą Spring Boot. Upewnij się, że serwer i baza Oracle są uruchomione."
               wrappingWidth="350" textAlignment="CENTER" styleClass="wrapped-text-style" style="-fx-fill: #7f8c8d;"/>
-        <Button fx:id="retryBtn" text="Ponów próbę połączenia"
-                onAction="#handleRetry" styleClass="button-primary" prefWidth="250"/>
+        <Button fx:id="retryBtn" text="Ponów próbę połączenia" onAction="#handleRetry"
+                styleClass="button-primary" prefWidth="250"/>
     </VBox>
 </VBox>

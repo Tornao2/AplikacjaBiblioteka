@@ -1,13 +1,16 @@
 package com.project.crud.frontend.controllers;
 
 import com.project.crud.frontend.model.BookDTO;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.text.Text;
+import java.util.stream.Stream;
 
 public class CatalogController {
     @FXML private TextField searchField;
@@ -20,48 +23,37 @@ public class CatalogController {
     @FXML
     public void initialize() {
         setupColumns();
-        loadMockData();
         setupSearch();
+        loadMockData();
+        bookTable.setPlaceholder(new Label("Brak dostępnych książek w katalogu."));
     }
 
     private void setupColumns() {
-        colTitle.setCellValueFactory(new PropertyValueFactory<>("title"));
-        colAuthor.setCellValueFactory(new PropertyValueFactory<>("author"));
-        colIsbn.setCellValueFactory(new PropertyValueFactory<>("isbn"));
-        colCategory.setCellValueFactory(new PropertyValueFactory<>("category"));
-        colYear.setCellValueFactory(new PropertyValueFactory<>("releaseYear"));
-        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
-        colDescription.setCellValueFactory(new PropertyValueFactory<>("description"));
+        colTitle.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getTitle()));
+        colAuthor.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getAuthor()));
+        colIsbn.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getIsbn()));
+        colCategory.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getCategory()));
+        colYear.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getReleaseYear()));
+        colStatus.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getStatus()));
+        colDescription.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getDescription()));
         colDescription.setCellFactory(tc -> new TableCell<>() {
-            private final javafx.scene.text.Text text = new javafx.scene.text.Text();
-            {
-                text.wrappingWidthProperty().bind(tc.widthProperty().subtract(20));
-                text.getStyleClass().add("text");
-            }
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setGraphic(null);
-                } else {
-                    text.setText(item);
-                    text.fillProperty().bind(textFillProperty());
-                    setGraphic(text);
-                }
+            private final Text t = new Text();
+            { t.wrappingWidthProperty().bind(tc.widthProperty().subtract(20)); t.getStyleClass().add("text"); }
+            @Override protected void updateItem(String i, boolean e) {
+                super.updateItem(i, e);
+                if (e || i == null) setGraphic(null);
+                else { t.setText(i); t.fillProperty().bind(textFillProperty()); setGraphic(t); }
             }
         });
-        bookTable.setPlaceholder(new Label("Brak dostępnych książek w katalogu."));
     }
 
     private void setupSearch() {
         FilteredList<BookDTO> filtered = new FilteredList<>(masterData, p -> true);
-        searchField.textProperty().addListener((obs, old, val) -> filtered.setPredicate(book -> {
-            if (val == null || val.isBlank()) return true;
-            String f = val.toLowerCase();
-            return book.getTitle().toLowerCase().contains(f) ||
-                    book.getAuthor().toLowerCase().contains(f) ||
-                    book.getCategory().toLowerCase().contains(f);
-        }));
+        searchField.textProperty().addListener((obs, old, val) -> {
+            String f = val.toLowerCase().trim();
+            filtered.setPredicate(b -> f.isEmpty() || Stream.of(b.getTitle(), b.getAuthor(), b.getCategory())
+                    .anyMatch(s -> s != null && s.toLowerCase().contains(f)));
+        });
         SortedList<BookDTO> sorted = new SortedList<>(filtered);
         sorted.comparatorProperty().bind(bookTable.comparatorProperty());
         bookTable.setItems(sorted);
@@ -70,7 +62,7 @@ public class CatalogController {
     private void loadMockData() {
         masterData.addAll(
                 new BookDTO(1L, "Wiedźmin", "Andrzej Sapkowski", "9788375", "Fantasy", "AVAILABLE", "Opis", 1990),
-                new BookDTO(2L, "Rok 1984", "George Orwell", "9780451", "Dystopia", "RENTED", "OpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpisOpis", 1949),
+                new BookDTO(2L, "Rok 1984", "George Orwell", "9780451", "Dystopia", "RENTED", "DłuższyDłuższyDłuższyDłuższyDłuższyDłuższyDłuższyDłuższyDłuższyDłuższyDłuższyDłuższy opis klasyki literatury.", 1949),
                 new BookDTO(3L, "Hobbit", "J.R.R. Tolkien", "9788324", "Fantasy", "AVAILABLE", "Opis", 1937)
         );
     }

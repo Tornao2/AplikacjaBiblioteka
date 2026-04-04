@@ -12,6 +12,8 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 
+import java.util.stream.Stream;
+
 public class AdminDeleteUsersController {
     @FXML private TextField searchField;
     @FXML private TableView<UserDTO> usersTable;
@@ -32,11 +34,11 @@ public class AdminDeleteUsersController {
     private void setupTableColumns() {
         colId.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getId()));
         colUsername.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getUsername()));
-        colFullName.setCellValueFactory(d -> new SimpleStringProperty(
-                d.getValue().getFirstName() + " " + d.getValue().getLastName()));
+        colFullName.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getFullName())); // Zakładam, że UserDTO ma getFullName()
         colEmail.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getEmail()));
         colRole.setCellValueFactory(d -> new SimpleStringProperty(
                 d.getValue().getRole() != null ? d.getValue().getRole().name() : "BRAK"));
+
         setupActions();
     }
 
@@ -60,49 +62,42 @@ public class AdminDeleteUsersController {
 
     private void setupFiltering() {
         FilteredList<UserDTO> filteredData = new FilteredList<>(masterData, p -> true);
-        searchField.textProperty().addListener((obs, oldVal, newVal) -> filteredData.setPredicate(user -> {
-            if (newVal == null || newVal.isBlank()) return true;
-            String filter = newVal.toLowerCase();
-            return user.getUsername().toLowerCase().contains(filter) ||
-                    user.getEmail().toLowerCase().contains(filter) ||
-                    user.getFirstName().toLowerCase().contains(filter) ||
-                    user.getLastName().toLowerCase().contains(filter) ||
-                    String.valueOf(user.getId()).contains(filter);
-        }));
+        searchField.textProperty().addListener((obs, old, newVal) -> {
+            String f = newVal.toLowerCase();
+            filteredData.setPredicate(u -> f.isBlank() ||
+                    Stream.of(u.getUsername(), u.getEmail(), u.getFirstName(), u.getLastName(), String.valueOf(u.getId()))
+                            .anyMatch(s -> s != null && s.toLowerCase().contains(f)));
+        });
         usersTable.setItems(filteredData);
     }
 
     private void handleDeleteRequest(UserDTO user) {
         if (!canDeleteUser(user)) {
-            showError();
+            showAlert(Alert.AlertType.ERROR, "Błąd", "Nie można usunąć użytkownika.", "Upewnij się, że nie ma on aktywnych wypożyczeń.");
             return;
         }
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Potwierdzenie");
-        alert.setHeaderText("Usunąć użytkownika " + user.getUsername() + "?");
-        alert.setContentText("Ta operacja jest nieodwracalna.");
+        showAlert(Alert.AlertType.CONFIRMATION, "Potwierdzenie", "Usunąć użytkownika " + user.getUsername() + "?", "Ta operacja jest nieodwracalna.")
+                .filter(res -> res == ButtonType.OK)
+                .ifPresent(res -> masterData.remove(user));
+    }
+
+    private boolean canDeleteUser(UserDTO user) { return true; }
+
+    private java.util.Optional<ButtonType> showAlert(Alert.AlertType type, String title, String header, String content) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(header);
+        alert.setContentText(content);
         DialogPane pane = alert.getDialogPane();
         pane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
         pane.getStyleClass().add("root-container");
-        styleButton(pane, ButtonType.OK, "Tak, usuń", "button-primary");
-        styleButton(pane, ButtonType.CANCEL, "Anuluj", "button-outline-danger");
-        alert.showAndWait().ifPresent(res -> {
-            if (res == ButtonType.OK) masterData.remove(user);
-        });
-    }
-
-    private boolean canDeleteUser(UserDTO user) {
-        // Tutaj w przyszłości dodać sprawdzenie czy możńa usunac
-        return true;
-    }
-
-    private void showError() {
-        Alert alert = new Alert(Alert.AlertType.ERROR, "Nie można usunąć użytkownika. Upewnij się, że nie ma on aktywnych wypożyczeń.");
-        DialogPane pane = alert.getDialogPane();
-        pane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
-        pane.getStyleClass().add("root-container");
-        styleButton(pane, ButtonType.OK, "Rozumiem", "button-primary");
-        alert.showAndWait();
+        if (type == Alert.AlertType.CONFIRMATION) {
+            styleButton(pane, ButtonType.OK, "Tak, usuń", "button-primary");
+            styleButton(pane, ButtonType.CANCEL, "Anuluj", "button-outline-danger");
+        } else {
+            styleButton(pane, ButtonType.OK, "Rozumiem", "button-primary");
+        }
+        return alert.showAndWait();
     }
 
     private void styleButton(DialogPane pane, ButtonType type, String text, String styleClass) {
@@ -115,9 +110,13 @@ public class AdminDeleteUsersController {
 
     private void loadInitialData() {
         masterData.addAll(
-                UserDTO.builder().id(1L).username("admin_super").firstName("Super").lastName("Admin").email("admin@library.com").role(UserRole.ADMIN).build(),
-                UserDTO.builder().id(2L).username("jan_nowak").firstName("Jan").lastName("Nowak").email("j.nowak@gmail.com").role(UserRole.USER).build(),
-                UserDTO.builder().id(3L).username("bibliotekarz1").firstName("Marta").lastName("Zielińska").email("staff@library.com").role(UserRole.LIBRARIAN).build()
+                createUser(1L, "admin_super", "Super", "Admin", "admin@library.com", UserRole.ADMIN),
+                createUser(2L, "jan_nowak", "Jan", "Nowak", "j.nowak@gmail.com", UserRole.USER),
+                createUser(3L, "bibliotekarz1", "Marta", "Zielińska", "staff@library.com", UserRole.LIBRARIAN)
         );
+    }
+
+    private UserDTO createUser(Long id, String u, String f, String l, String e, UserRole r) {
+        return UserDTO.builder().id(id).username(u).firstName(f).lastName(l).email(e).role(r).build();
     }
 }

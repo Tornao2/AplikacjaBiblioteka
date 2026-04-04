@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox spacing="20" styleClass="root-container"
-      xmlns:fx="http://javafx.com/fxml"
+<VBox spacing="20" styleClass="root-container" xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.project.crud.frontend.controllers.ProfileController">
     <Label text="Ustawienia profilu" styleClass="header-text"/>
     <VBox spacing="20" styleClass="form-container">
@@ -14,25 +12,24 @@
                 <ColumnConstraints hgrow="ALWAYS"/>
                 <ColumnConstraints prefWidth="120"/>
             </columnConstraints>
-            <TextField fx:id="emailField" promptText="Nowy adres email"
-                       GridPane.columnIndex="0" styleClass="text-field" maxWidth="Infinity"/>
+            <TextField fx:id="emailField" promptText="Nowy adres email" maxWidth="Infinity"/>
             <Button fx:id="aktButton" text="Aktualizuj" onAction="#handleUpdateEmail"
                     GridPane.columnIndex="1" styleClass="button-primary" maxWidth="Infinity"/>
         </GridPane>
         <Separator/>
         <Label text="Zmień hasło" styleClass="stats-label"/>
         <VBox spacing="10">
-            <PasswordField fx:id="currentPasswordField" promptText="Obecne hasło" styleClass="text-field"/>
-            <PasswordField fx:id="newPasswordField" promptText="Nowe hasło" styleClass="text-field"/>
-            <PasswordField fx:id="confirmPasswordField" promptText="Powtórz nowe hasło" styleClass="text-field"/>
+            <PasswordField fx:id="currentPasswordField" promptText="Obecne hasło"/>
+            <PasswordField fx:id="newPasswordField" promptText="Nowe hasło"/>
+            <PasswordField fx:id="confirmPasswordField" promptText="Powtórz nowe hasło"/>
             <Button fx:id="chanButton" text="Zmień hasło" onAction="#handleUpdatePassword"
                     styleClass="button-primary" maxWidth="Infinity"/>
         </VBox>
         <Separator/>
         <VBox spacing="10">
-            <HBox styleClass="form-container" style="-fx-border-color: -fx-danger; -fx-border-width: 0 0 0 5;"
-                  spacing="20" alignment="CENTER_LEFT">
-                <Label text="Usunięcie konta spowoduje bezpowrotne skasowanie powiązanych danych oraz historii."
+            <HBox spacing="20" alignment="CENTER_LEFT" styleClass="form-container"
+                  style="-fx-border-color: -fx-danger; -fx-border-width: 0 0 0 5;">
+                <Label text="Usunięcie konta spowoduje bezpowrotne skasowanie danych oraz historii."
                        wrapText="true" styleClass="stats-label" style="-fx-text-fill: #7f8c8d;" HBox.hgrow="ALWAYS"/>
             </HBox>
             <Button text="Usuń konto" onAction="#handleDeleteAccount"

@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
 <StackPane stylesheets="@style.css" xmlns:fx="http://javafx.com/fxml"
            fx:controller="com.project.crud.frontend.controllers.LoginController">
-  <VBox spacing="15.0" maxWidth="400" maxHeight="400" styleClass="login-card" alignment="CENTER">
+  <VBox spacing="15" maxWidth="400" maxHeight="400" styleClass="login-card" alignment="CENTER">
     <Label text="System Zarządzania &#10;Biblioteką" textAlignment="CENTER" styleClass="header-text"/>
-    <VBox spacing="15.0">
-      <TextField fx:id="usernameField" promptText="Nazwa użytkownika" styleClass="text-field"/>
-      <PasswordField fx:id="passwordField" promptText="Hasło" styleClass="password-field"/>
+    <VBox spacing="15">
+      <TextField fx:id="usernameField" promptText="Nazwa użytkownika" />
+      <PasswordField fx:id="passwordField" promptText="Hasło" />
     </VBox>
     <Button fx:id="btn" text="ZALOGUJ SIĘ" onAction="#handleLogin" maxWidth="Infinity" styleClass="button-primary"/>
-    <HBox fx:id="errorCont" spacing="20" alignment="CENTER_LEFT"
-          styleClass="form-container" style="-fx-border-color: -fx-danger; -fx-border-width: 0 0 0 5;">
-      <Label fx:id="errorLabel" style="-fx-text-fill: #c0392b; -fx-font-size: 24px;" wrapText="true"/>
+    <HBox fx:id="errorCont" spacing="20" alignment="CENTER_LEFT" styleClass="form-container"
+          style="-fx-border-color: -fx-danger; -fx-border-width: 0 0 0 5;">
+      <Label fx:id="errorLabel" style="-fx-text-fill: -fx-danger; -fx-font-size: 24;" wrapText="true"/>
     </HBox>
+  </VBox>
+  <VBox fx:id="globalLoadingOverlay" alignment="CENTER" visible="false" managed="false"
+        style="-fx-background-color: rgba(255,255,255,0.7); -fx-background-radius: 10;">
+    <ProgressIndicator prefHeight="50" prefWidth="50" />
+    <Label text="Logowanie..." style="-fx-padding: 10; -fx-font-weight: bold;"/>
   </VBox>
 </StackPane>

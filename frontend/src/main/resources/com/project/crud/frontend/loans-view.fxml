@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.net.URL?>
@@ -17,10 +16,10 @@
     </HBox>
     <TableView fx:id="loanTable" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn fx:id="colLoanTitle" text="Tytuł Książki" prefWidth="250"/>
-            <TableColumn fx:id="colDueDate" text="Termin zwrotu" prefWidth="120"/>
-            <TableColumn fx:id="colStatus" text="Status" prefWidth="120"/>
-            <TableColumn fx:id="payDue" text="Do zapłaty" prefWidth="100"/>
+            <TableColumn fx:id="colLoanTitle" text="Tytuł Książki" />
+            <TableColumn fx:id="colDueDate" text="Termin zwrotu" />
+            <TableColumn fx:id="colStatus" text="Status" />
+            <TableColumn fx:id="payDue" text="Do zapłaty" />
         </columns>
         <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />

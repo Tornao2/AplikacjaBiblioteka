@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.net.URL?>
@@ -34,12 +33,9 @@
     <center>
         <StackPane>
             <StackPane fx:id="contentArea" />
-            <VBox fx:id="globalLoadingOverlay"
-                  alignment="CENTER"
-                  visible="false"
-                  managed="false"
+            <VBox fx:id="globalLoadingOverlay" alignment="CENTER" visible="false" managed="false"
                   style="-fx-background-color: rgba(255,255,255,0.7);">
-                <ProgressIndicator prefWidth="60" prefHeight="60" />
+                <ProgressIndicator prefHeight="60" prefWidth="60" />
                 <Label text="Pobieranie danych..." style="-fx-padding: 10; -fx-font-weight: bold;"/>
             </VBox>
         </StackPane>

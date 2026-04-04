@@ -1,17 +1,19 @@
 package com.project.crud.frontend.controllers;
 
 import com.project.crud.frontend.model.SystemLogDTO;
-import javafx.beans.value.ChangeListener;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.text.Text;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.stream.Stream;
 
 public class AdminLogsController {
     @FXML private TableView<SystemLogDTO> logTable;
@@ -27,77 +29,63 @@ public class AdminLogsController {
     @FXML
     public void initialize() {
         setupColumns();
-        severityFilter.getItems().addAll("WSZYSTKIE", "INFO", "WARNING", "CRITICAL");
+        severityFilter.setItems(FXCollections.observableArrayList("WSZYSTKIE", "INFO", "WARNING", "CRITICAL"));
         severityFilter.setValue("WSZYSTKIE");
         loadMockLogs();
         setupLiveFiltering();
     }
 
     private void setupColumns() {
-        colTimestamp.setCellValueFactory(new PropertyValueFactory<>("timestamp"));
-        colUser.setCellValueFactory(new PropertyValueFactory<>("user"));
-        colAction.setCellValueFactory(new PropertyValueFactory<>("action"));
-        colDetails.setCellValueFactory(new PropertyValueFactory<>("details"));
-        colSeverity.setCellValueFactory(new PropertyValueFactory<>("severity"));
+        colTimestamp.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getTimestamp()));
+        colUser.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getUser()));
+        colAction.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getAction()));
+        colDetails.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getDetails()));
+        colSeverity.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getSeverity()));
         colTimestamp.setCellFactory(c -> new TableCell<>() {
-            @Override
-            protected void updateItem(LocalDateTime item, boolean empty) {
-                super.updateItem(item, empty);
-                setText((empty || item == null) ? null : formatter.format(item));
+            @Override protected void updateItem(LocalDateTime i, boolean e) {
+                super.updateItem(i, e);
+                setText((e || i == null) ? null : formatter.format(i));
             }
         });
         colDetails.setCellFactory(tc -> new TableCell<>() {
-            private final javafx.scene.text.Text text = new javafx.scene.text.Text();
-            {
-                text.wrappingWidthProperty().bind(tc.widthProperty().subtract(20));
-                text.getStyleClass().add("text");
-            }
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setGraphic(null);
-                } else {
-                    text.setText(item);
-                    text.fillProperty().bind(textFillProperty());
-                    setGraphic(text);
-                }
+            private final Text t = new Text();
+            { t.wrappingWidthProperty().bind(tc.widthProperty().subtract(20)); t.getStyleClass().add("text"); }
+            @Override protected void updateItem(String i, boolean e) {
+                super.updateItem(i, e);
+                if (e || i == null) setGraphic(null);
+                else { t.setText(i); t.fillProperty().bind(textFillProperty()); setGraphic(t); }
             }
         });
     }
 
     private void setupLiveFiltering() {
-        FilteredList<SystemLogDTO> filteredData = new FilteredList<>(masterData, p -> true);
-        ChangeListener<Object> filterListener = (obs, old, val) -> filteredData.setPredicate(log -> {
-            String searchText = logSearchField.getText() == null ? "" : logSearchField.getText().toLowerCase().trim();
-            boolean matchesText = searchText.isEmpty() ||
-                    log.getUser().toLowerCase().contains(searchText) ||
-                    log.getAction().toLowerCase().contains(searchText) ||
-                    log.getDetails().toLowerCase().contains(searchText);
-            String selectedSev = severityFilter.getValue();
-            boolean matchesSev = selectedSev == null || "WSZYSTKIE".equals(selectedSev) ||
-                    log.getSeverity().equalsIgnoreCase(selectedSev);
-            LocalDate dFrom = dateFrom.getValue();
-            LocalDate dTo = dateTo.getValue();
-            LocalDate logDate = log.getTimestamp().toLocalDate();
-            boolean matchesDate = (dFrom == null || !logDate.isBefore(dFrom)) &&
-                    (dTo == null || !logDate.isAfter(dTo));
-            return matchesText && matchesSev && matchesDate;
-        });
-        logSearchField.textProperty().addListener(filterListener);
-        severityFilter.valueProperty().addListener(filterListener);
-        dateFrom.valueProperty().addListener(filterListener);
-        dateTo.valueProperty().addListener(filterListener);
-        SortedList<SystemLogDTO> sortedData = new SortedList<>(filteredData);
-        sortedData.comparatorProperty().bind(logTable.comparatorProperty());
-        logTable.setItems(sortedData);
+        FilteredList<SystemLogDTO> filtered = new FilteredList<>(masterData, p -> true);
+        javafx.beans.value.ChangeListener<Object> l = (o, old, v) -> filtered.setPredicate(this::applyFilters);
+        logSearchField.textProperty().addListener(l);
+        severityFilter.valueProperty().addListener(l);
+        dateFrom.valueProperty().addListener(l);
+        dateTo.valueProperty().addListener(l);
+        SortedList<SystemLogDTO> sorted = new SortedList<>(filtered);
+        sorted.comparatorProperty().bind(logTable.comparatorProperty());
+        logTable.setItems(sorted);
+    }
+
+    private boolean applyFilters(SystemLogDTO log) {
+        String s = logSearchField.getText() == null ? "" : logSearchField.getText().toLowerCase().trim();
+        boolean txt = s.isEmpty() || Stream.of(log.getUser(), log.getAction(), log.getDetails())
+                .anyMatch(f -> f != null && f.toLowerCase().contains(s));
+        String sev = severityFilter.getValue();
+        boolean mSev = "WSZYSTKIE".equals(sev) || log.getSeverity().equalsIgnoreCase(sev);
+        LocalDate f = dateFrom.getValue(), t = dateTo.getValue(), ld = log.getTimestamp().toLocalDate();
+        boolean mDate = (f == null || !ld.isBefore(f)) && (t == null || !ld.isAfter(t));
+        return txt && mSev && mDate;
     }
 
     private void loadMockLogs() {
         masterData.addAll(
                 new SystemLogDTO(LocalDateTime.now(), "admin", "LOGIN", "Pomyślne logowanie", "INFO"),
                 new SystemLogDTO(LocalDateTime.now().minusMinutes(5), "marta_b", "BOOK_ADD", "Dodano: Solaris", "INFO"),
-                new SystemLogDTO(LocalDateTime.now().minusHours(2), "system", "DB_ERROR", "Błąd połączenia połączenia połączenia połączenia", "CRITICAL"),
+                new SystemLogDTO(LocalDateTime.now().minusHours(2), "system", "DB_ERROR", "Błąd połączenia", "CRITICAL"),
                 new SystemLogDTO(LocalDateTime.now().minusDays(1), "jan_kowalski", "AUTH_FAIL", "Złe hasło", "WARNING")
         );
     }

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -9,13 +8,10 @@
     <VBox spacing="15" styleClass="form-container" VBox.vgrow="ALWAYS">
         <HBox spacing="15" alignment="CENTER_LEFT">
             <Label text="Szukaj:"/>
-            <TextField fx:id="searchField" promptText="Imię, nazwisko lub login..."
-                       HBox.hgrow="ALWAYS" styleClass="text-field"/>
+            <TextField fx:id="searchField" promptText="Imię, nazwisko lub login..." HBox.hgrow="ALWAYS" />
         </HBox>
         <TableView fx:id="staffTable" VBox.vgrow="ALWAYS">
-            <placeholder>
-                <Label text="Brak zarejestrowanych pracowników spełniających kryteria."/>
-            </placeholder>
+            <placeholder><Label text="Brak zarejestrowanych pracowników."/></placeholder>
             <columns>
                 <TableColumn fx:id="colId" text="ID" prefWidth="40"/>
                 <TableColumn fx:id="colFullName" text="Imię i Nazwisko" prefWidth="140"/>

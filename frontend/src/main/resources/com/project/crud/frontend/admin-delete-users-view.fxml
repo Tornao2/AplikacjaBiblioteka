@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
@@ -9,8 +8,7 @@
     <VBox spacing="15" styleClass="form-container" VBox.vgrow="ALWAYS">
         <HBox spacing="15" alignment="CENTER_LEFT">
             <Label text="Filtruj listę:" styleClass="stats-label"/>
-            <TextField fx:id="searchField" promptText="Szukaj po loginie, imieniu, nazwisku, emailu lub ID..."
-                       HBox.hgrow="ALWAYS" styleClass="text-field"/>
+            <TextField fx:id="searchField" promptText="Szukaj..." HBox.hgrow="ALWAYS" />
         </HBox>
         <TableView fx:id="usersTable" VBox.vgrow="ALWAYS">
             <columns>
@@ -23,8 +21,9 @@
             </columns>
         </TableView>
     </VBox>
-    <HBox styleClass="form-container" style="-fx-border-color: -fx-danger; -fx-border-width: 0 0 0 5;" alignment="CENTER_LEFT">
-        <Label text="Usunięcie konta jest operacją nieodwracalną. System zablokuje usunięcie użytkowników z aktywnymi wypożyczeniami."
+    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="form-container"
+          style="-fx-border-color: -fx-danger; -fx-border-width: 0 0 0 5;">
+        <Label text="Usunięcie konta jest nieodwracalne. Aktywne wypożyczenia blokują usuwanie."
                wrapText="true" styleClass="stats-label" style="-fx-text-fill: #7f8c8d;" HBox.hgrow="ALWAYS"/>
     </HBox>
 </VBox>

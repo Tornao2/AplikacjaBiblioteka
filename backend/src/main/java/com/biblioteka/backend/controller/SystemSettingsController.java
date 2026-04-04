@@ -4,6 +4,7 @@ import com.biblioteka.backend.dto.SystemSettingsDTO;
 import com.biblioteka.backend.service.SystemSettingsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
@@ -11,6 +12,7 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/settings")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+@PreAuthorize("hasRole('ADMIN')")
 public class SystemSettingsController {
     private final SystemSettingsService settingsService;
     @GetMapping
