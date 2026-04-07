@@ -13,13 +13,13 @@
         <TableView fx:id="staffTable" VBox.vgrow="ALWAYS">
             <placeholder><Label text="Brak zarejestrowanych pracowników."/></placeholder>
             <columns>
-                <TableColumn fx:id="colId" text="ID" prefWidth="40"/>
+                <TableColumn fx:id="colUsername" text="Login" prefWidth="100"/>
                 <TableColumn fx:id="colFullName" text="Imię i Nazwisko" prefWidth="140"/>
-                <TableColumn fx:id="colEmail" text="Email" prefWidth="180"/>
-                <TableColumn fx:id="colRole" text="Rola" prefWidth="100"/>
-                <TableColumn fx:id="colPhone" text="Telefon" prefWidth="100"/>
-                <TableColumn fx:id="colSalary" text="Pensja" prefWidth="100"/>
-                <TableColumn fx:id="colHireDate" text="Zatrudniony od" prefWidth="120"/>
+                <TableColumn fx:id="colEmail" text="Email" prefWidth="160"/>
+                <TableColumn fx:id="colRole" text="Rola" prefWidth="90"/>
+                <TableColumn fx:id="colPhone" text="Telefon" prefWidth="90"/>
+                <TableColumn fx:id="colSalary" text="Pensja" prefWidth="80"/>
+                <TableColumn fx:id="colHireDate" text="Zatrudniony od" prefWidth="110"/>
                 <TableColumn fx:id="colActions" text="Zarządzaj" prefWidth="150"/>
             </columns>
         </TableView>

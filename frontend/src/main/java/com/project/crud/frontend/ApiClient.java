@@ -7,11 +7,10 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
-import javafx.stage.Stage;
 
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.*;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class ApiClient {
@@ -28,7 +27,6 @@ public class ApiClient {
         var builder = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + endpoint))
                 .header("Content-Type", "application/json");
-
         UserSession session = UserSession.getInstance();
         if (session != null && session.getToken() != null) {
             builder.header("Authorization", "Bearer " + session.getToken().getToken());
@@ -36,65 +34,55 @@ public class ApiClient {
         return builder;
     }
 
-    public <T> CompletableFuture<T> get(String endpoint, Class<T> type) {
-        return execute(createBuilder(endpoint).GET().build(), type);
-    }
-
-    public <T> CompletableFuture<List<T>> getList(String endpoint, Class<T> type) {
-        var req = createBuilder(endpoint).GET().build();
-        var listType = mapper.getTypeFactory().constructCollectionType(List.class, type);
-        return client.sendAsync(req, HttpResponse.BodyHandlers.ofString())
-                .thenApply(res -> {
-                    validateResponse(res);
-                    try {
-                        return mapper.<List<T>>readValue(res.body(), listType);
-                    } catch (Exception e) { throw new RuntimeException(e); }
-                })
-                .exceptionally(this::handleEx);
-    }
-
     public <T> CompletableFuture<T> send(String endpoint, String method, Object body, Class<T> type) {
         try {
+            HttpRequest.BodyPublisher publisher = (body == null)
+                    ? HttpRequest.BodyPublishers.noBody()
+                    : HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body));
             var req = createBuilder(endpoint)
-                    .method(method, HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
+                    .method(method, publisher)
                     .build();
-            return execute(req, type);
+            return client.sendAsync(req, HttpResponse.BodyHandlers.ofString())
+                    .thenApply(res -> {
+                        if (res.statusCode() >= 500) throw new RuntimeException("500:Serwer leży");
+                        if (res.statusCode() >= 400) throw new RuntimeException(res.body());
+                        try {
+                            if (res.body().isEmpty() || type == Void.class) return null;
+                            return mapper.readValue(res.body(), type);
+                        } catch (Exception e) {
+                            throw new RuntimeException("Mapping error: " + e.getMessage());
+                        }
+                    }).exceptionally(ex -> {
+                        handleException(ex);
+                        throw new RuntimeException(ex);
+                    });
         } catch (Exception e) {
-            loadErrorScreen();
-            return CompletableFuture.failedFuture(e);
+            handleException(e);
+            return CompletableFuture.completedFuture(null);
         }
     }
 
-    private <T> CompletableFuture<T> execute(HttpRequest req, Class<T> type) {
-        return client.sendAsync(req, HttpResponse.BodyHandlers.ofString())
-                .thenApply(res -> {
-                    validateResponse(res);
-                    try {
-                        return (res.body().isEmpty() || type == Void.class) ? null : mapper.readValue(res.body(), type);
-                    } catch (Exception e) { throw new RuntimeException(e); }
-                })
-                .exceptionally(this::handleEx);
-    }
-
-    private void validateResponse(HttpResponse<String> res) {
-        if (res.statusCode() >= 400) throw new RuntimeException(String.valueOf(res.statusCode()));
-    }
-
-    private <T> T handleEx(Throwable ex) {
-        var cause = ex.getCause() != null ? ex.getCause() : ex;
-        var msg = cause.getMessage();
-        if (msg == null || !List.of("400", "401", "403").contains(msg)) {
+    private void handleException(Throwable ex) {
+        Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+        if (cause instanceof ConnectException || cause.getMessage().contains("Connection refused")) {
             Platform.runLater(this::loadErrorScreen);
         }
-        return null;
     }
 
     private void loadErrorScreen() {
         try {
-            var scene = viewNode.getScene();
-            if (scene == null) return;
-            Parent root = new FXMLLoader(getClass().getResource("error-connection-view.fxml")).load();
-            (scene.getWindow()).getScene().setRoot(root);
+            if (viewNode.getScene() == null) return;
+            Parent root = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/error-connection-view.fxml")).load();
+            viewNode.getScene().setRoot(root);
         } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    public static String getErrorMessage(Throwable ex) {
+        if (ex == null) return "Nieznany błąd";
+        Throwable cause = ex;
+        while (cause.getCause() != null && cause != cause.getCause()) {
+            cause = cause.getCause();
+        }
+        return cause.getMessage();
     }
 }

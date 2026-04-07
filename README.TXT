@@ -14,3 +14,15 @@ Dla admina/kierownika: admin admin
 Dla bibliotekarza: biblio biblio
 
 Dla czytelnika: user user
+
+SKOŃCZON EKRANY:
+
+MainController
+
+LoginController
+
+AdminSettingsController
+
+AdminUsersController
+
+DANE SIĘ RESETUJĄ POMIĘDZY KOELJNYMI WŁĄCZENIAMI BACKENDU

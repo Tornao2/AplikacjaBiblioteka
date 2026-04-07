@@ -1,5 +1,6 @@
 package com.biblioteka.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -22,6 +23,7 @@ public class Staff {
     @Column(name = "phone_number", length = 20)
     private String phoneNumber;
     @Column(name = "hire_date", nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate hireDate;
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal salary;

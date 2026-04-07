@@ -6,6 +6,8 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 
+import java.util.stream.Stream;
+
 public class AdminSettingsController {
     @FXML private Spinner<Integer> loanDurationSpinner, userLimitSpinner;
     @FXML private TextField penaltyRateField;
@@ -32,16 +34,17 @@ public class AdminSettingsController {
 
     private void fetch() {
         if (cachedSettings == null) MainController.setLoading(true);
-        apiClient.get("/settings", SystemSettingsDTO.class)
+        apiClient.send("/settings", "GET", null, SystemSettingsDTO.class)
                 .thenAccept(s -> Platform.runLater(() -> {
-                    cachedSettings = s;
-                    load(s);
                     MainController.setLoading(false);
+                    if (s != null) {
+                        cachedSettings = s;
+                        load(s);
+                    }
                 }))
                 .exceptionally(e -> {
                     Platform.runLater(() -> {
                         MainController.setLoading(false);
-                        if (cachedSettings == null) show(Alert.AlertType.ERROR, "Błąd połączenia.");
                     });
                     return null;
                 });
@@ -56,22 +59,31 @@ public class AdminSettingsController {
 
     @FXML
     private void handleSaveSettings() {
+        Stream.of(loanDurationSpinner, userLimitSpinner).forEach(Spinner::commitValue);
         try {
             double rate = Double.parseDouble(penaltyRateField.getText());
-            var toSave = SystemSettingsDTO.builder()
+            var dta = SystemSettingsDTO.builder()
                     .maxLoanDuration(loanDurationSpinner.getValue())
                     .userLoanLimit(userLimitSpinner.getValue())
                     .dailyPenaltyRate(rate).build();
-            apiClient.send("/settings", "PUT", toSave, SystemSettingsDTO.class)
+            MainController.setLoading(true);
+            apiClient.send("/settings", "PUT", dta, SystemSettingsDTO.class)
                     .thenAccept(res -> Platform.runLater(() -> {
-                        cachedSettings = toSave;
-                        show(Alert.AlertType.INFORMATION, "Ustawienia zapisane.");
+                        MainController.setLoading(false);
+                        cachedSettings = dta;
+                        showAlert(Alert.AlertType.INFORMATION, "Ustawienia zostały zapisane.");
                     }))
                     .exceptionally(e -> {
-                        Platform.runLater(() -> show(Alert.AlertType.WARNING, "Błąd walidacji serwera."));
+                        Platform.runLater(() -> {
+                            MainController.setLoading(false);
+                            String cleanMsg = ApiClient.getErrorMessage(e);
+                            showAlert(Alert.AlertType.ERROR, "Nie udało się zapisać ustawień: \n" + cleanMsg);
+                        });
                         return null;
                     });
-        } catch (Exception e) { show(Alert.AlertType.ERROR, "Nieprawidłowy format stawki."); }
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Nieprawidłowy format danych.");
+        }
     }
 
     private void configureSpinner(Spinner<Integer> s, int max, int def) {
@@ -82,7 +94,7 @@ public class AdminSettingsController {
         });
     }
 
-    private void show(Alert.AlertType t, String msg) {
+    private void showAlert(Alert.AlertType t, String msg) {
         Alert a = new Alert(t, msg);
         a.setHeaderText(null);
         DialogPane p = a.getDialogPane();

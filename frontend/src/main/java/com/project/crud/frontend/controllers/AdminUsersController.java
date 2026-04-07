@@ -1,8 +1,10 @@
 package com.project.crud.frontend.controllers;
 
+import com.project.crud.frontend.ApiClient;
+import com.project.crud.frontend.auth.UserSession;
 import com.project.crud.frontend.model.StaffDTO;
-import com.project.crud.frontend.model.UserDTO;
 import com.project.crud.frontend.model.UserRole;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -10,18 +12,23 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
+
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public class AdminUsersController {
     @FXML private TableView<StaffDTO> staffTable;
-    @FXML private TableColumn<StaffDTO, Long> colId;
-    @FXML private TableColumn<StaffDTO, String> colFullName, colEmail, colPhone;
+    @FXML private TableColumn<StaffDTO, String> colUsername, colFullName, colEmail, colPhone;
     @FXML private TableColumn<StaffDTO, UserRole> colRole;
     @FXML private TableColumn<StaffDTO, Double> colSalary;
     @FXML private TableColumn<StaffDTO, LocalDate> colHireDate;
@@ -29,16 +36,18 @@ public class AdminUsersController {
     @FXML private TextField searchField;
 
     private final ObservableList<StaffDTO> masterData = FXCollections.observableArrayList();
+    private ApiClient apiClient;
 
     @FXML
     public void initialize() {
+        this.apiClient = new ApiClient(searchField);
         setupColumns();
         setupFiltering();
-        loadMockData();
+        refreshData();
     }
 
     private void setupColumns() {
-        colId.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getUser().getId()));
+        colUsername.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getUser().getUsername()));
         colFullName.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getUser().getFullName()));
         colEmail.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getUser().getEmail()));
         colRole.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getUser().getRole()));
@@ -46,18 +55,6 @@ public class AdminUsersController {
         colSalary.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getSalary()));
         colHireDate.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getHireDate()));
         setupActions();
-    }
-
-    private void setupFiltering() {
-        FilteredList<StaffDTO> filtered = new FilteredList<>(masterData, p -> true);
-        searchField.textProperty().addListener((o, old, v) -> {
-            String f = v.toLowerCase().trim();
-            filtered.setPredicate(s -> f.isEmpty() || Stream.of(s.getUser().getFullName(), s.getUser().getEmail())
-                    .anyMatch(field -> field.toLowerCase().contains(f)));
-        });
-        SortedList<StaffDTO> sorted = new SortedList<>(filtered);
-        sorted.comparatorProperty().bind(staffTable.comparatorProperty());
-        staffTable.setItems(sorted);
     }
 
     private void setupActions() {
@@ -79,64 +76,201 @@ public class AdminUsersController {
     }
 
     private void showStaffDialog(StaffDTO s) {
-        boolean isEdit = s != null;
-        Dialog<StaffDTO> dialog = new Dialog<>();
-        styleControl(dialog, "Zapisz");
-        dialog.setTitle(isEdit ? "Edycja" : "Nowy Pracownik");
+        boolean isEdit = (s != null);
+        Dialog<Map<String, Object>> dialog = new Dialog<>();
+        styleControl(dialog, isEdit ? "Zapisz zmiany" : "Zatrudnij", "Anuluj");
+        dialog.setTitle(isEdit ? "Edycja danych pracownika" : "Nowy pracownik");
         TextField user = new TextField(isEdit ? s.getUser().getUsername() : ""),
                 fName = new TextField(isEdit ? s.getUser().getFirstName() : ""),
                 lName = new TextField(isEdit ? s.getUser().getLastName() : ""),
                 email = new TextField(isEdit ? s.getUser().getEmail() : ""),
                 phone = new TextField(isEdit ? s.getPhoneNumber() : ""),
                 salary = new TextField(isEdit ? String.valueOf(s.getSalary()) : "");
+        ComboBox<UserRole> roleCombo = new ComboBox<>(FXCollections.observableArrayList(UserRole.ADMIN, UserRole.LIBRARIAN));
+        roleCombo.setValue(isEdit ? s.getUser().getRole() : UserRole.LIBRARIAN);
+        roleCombo.setMaxWidth(Double.MAX_VALUE);
         user.setDisable(isEdit);
-        ComboBox<UserRole> role = new ComboBox<>(FXCollections.observableArrayList(UserRole.LIBRARIAN, UserRole.ADMIN));
-        role.setValue(isEdit ? s.getUser().getRole() : UserRole.LIBRARIAN);
         DatePicker hire = new DatePicker(isEdit ? s.getHireDate() : LocalDate.now());
-        salary.textProperty().addListener((o, old, v) -> { if (!v.matches("\\d*(\\.\\d*)?")) salary.setText(old); });
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10); grid.setPadding(new Insets(20));
-        String[] l = {"Login:", "Imię:", "Nazwisko:", "Email:", "Telefon:", "Pensja:", "Rola:", "Data:"};
-        Control[] c = {user, fName, lName, email, phone, salary, role, hire};
-        for (int i = 0; i < l.length; i++) grid.addRow(i, new Label(l[i]), c[i]);
+        grid.addRow(0, new Label("Login:"), user);
+        int rowOffset = 1;
+        PasswordField pass = null;
+        if (!isEdit) {
+            pass = new PasswordField();
+            grid.addRow(rowOffset++, new Label("Hasło:"), pass);
+        }
+        grid.addRow(rowOffset++, new Label("Imię:"), fName);
+        grid.addRow(rowOffset++, new Label("Nazwisko:"), lName);
+        grid.addRow(rowOffset++, new Label("Rola:"), roleCombo);
+        grid.addRow(rowOffset++, new Label("Email:"), email);
+        grid.addRow(rowOffset++, new Label("Telefon:"), phone);
+        grid.addRow(rowOffset++, new Label("Pensja:"), salary);
+        grid.addRow(rowOffset++, new Label("Data zatrudnienia:"), hire);
         dialog.getDialogPane().setContent(grid);
+        final PasswordField finalPass = pass;
+        Button confirmBtn = (Button) dialog.getDialogPane().lookupButton(dialog.getDialogPane().getButtonTypes().get(0));
+        if (!isEdit && finalPass.getText() != null) {
+            confirmBtn.disableProperty().bind(
+                    pass.textProperty().isEmpty()
+            );
+        }
         dialog.setResultConverter(btn -> btn.getButtonData().isDefaultButton() ?
-                update(s, user, fName, lName, email, role, phone, salary, hire) : null);
-        dialog.showAndWait().ifPresent(res -> { if (!isEdit) masterData.add(res); staffTable.refresh(); });
-    }
-
-    private StaffDTO update(StaffDTO s, TextField u, TextField fn, TextField ln, TextField em, ComboBox<UserRole> r, TextField ph, TextField sal, DatePicker h) {
-        UserDTO user = (s == null) ? UserDTO.builder().build() : s.getUser();
-        user.setUsername(u.getText()); user.setFirstName(fn.getText()); user.setLastName(ln.getText());
-        user.setEmail(em.getText().toLowerCase()); user.setRole(r.getValue());
-        StaffDTO staff = (s == null) ? StaffDTO.builder().user(user).build() : s;
-        staff.setPhoneNumber(ph.getText()); staff.setSalary(Double.parseDouble(sal.getText()));
-        staff.setHireDate(h.getValue());
-        return staff;
-    }
-
-    private void handleDemote(StaffDTO s) {
-        Alert a = new Alert(Alert.AlertType.CONFIRMATION, "Czy na pewno zwolnić " + s.getUser().getUsername() + "?");
-        styleControl(a, "Tak, zwolnij");
-        a.showAndWait().filter(r -> r == ButtonType.OK).ifPresent(r -> {
-            s.getUser().setRole(UserRole.USER); masterData.remove(s);
+                buildMap(user, finalPass, fName, lName, email, phone, salary, hire, roleCombo.getValue()) : null);
+        dialog.showAndWait().ifPresent(request -> {
+            String endpoint = isEdit ? "/staff/" + s.getId() : "/staff";
+            String method = isEdit ? "PUT" : "POST";
+            MainController.setLoading(true);
+            apiClient.send(endpoint, method, request, StaffDTO.class)
+                    .thenAccept(res -> Platform.runLater(() -> {
+                        String currentUser = UserSession.getInstance().getToken().getUsername();
+                        if (isEdit && s.getUser().getUsername().equals(currentUser)) {
+                            String roleStr = (String) request.get("role");
+                            UserRole newRole = UserRole.valueOf(roleStr);
+                            if (newRole != UserSession.getInstance().getToken().getRole()) {
+                                showAlert("Zmiana uprawnień", "Twoja rola została zmieniona. Wymagane ponowne zalogowanie.", Alert.AlertType.INFORMATION);
+                                forceLogout();
+                                return;
+                            }
+                        }
+                        refreshData();
+                        showAlert("Sukces", "Dane zostały zaktualizowane.", Alert.AlertType.INFORMATION);
+                    }))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            MainController.setLoading(false);
+                            String error = ApiClient.getErrorMessage(ex);
+                            showAlert("Błąd zapisu", "Serwer odrzucił dane:\n" + error, Alert.AlertType.ERROR);
+                        });
+                        return null;
+                    });
         });
     }
 
-    private void styleControl(Dialog<?> d, String okT) {
-        DialogPane p = d.getDialogPane();
-        p.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
-        p.getButtonTypes().setAll(new ButtonType(okT, ButtonBar.ButtonData.OK_DONE), ButtonType.CANCEL);
-        p.getStyleClass().add("root-container");
-        (p.lookupButton(p.getButtonTypes().get(0))).getStyleClass().add("button-primary");
-        (p.lookupButton(ButtonType.CANCEL)).getStyleClass().add("button-outline-danger");
-        ((Button) p.lookupButton(ButtonType.CANCEL)).setText("Anuluj");
+    private Map<String, Object> buildMap(TextField u, PasswordField p, TextField fn, TextField ln, TextField em, TextField ph, TextField s, DatePicker d, UserRole role) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("username", u.getText());
+        if (p != null && !p.getText().isEmpty()) {
+            map.put("password", p.getText());
+        }
+        map.put("firstName", fn.getText());
+        map.put("lastName", ln.getText());
+        map.put("email", em.getText());
+        map.put("role", role.name());
+        map.put("phoneNumber", ph.getText());
+        map.put("salary", Double.parseDouble(s.getText().isEmpty() ? "0" : s.getText()));
+        map.put("hireDate", d.getValue().toString());
+        return map;
+    }
+
+    private void refreshData() {
+        MainController.setLoading(true);
+        apiClient.send("/staff", "GET", null, StaffDTO[].class)
+                .thenAccept(arr -> Platform.runLater(() -> {
+                    MainController.setLoading(false);
+                    if (arr != null) masterData.setAll(arr);
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        MainController.setLoading(false);
+                        String error = ApiClient.getErrorMessage(ex);
+                        if (error.contains("401") || error.contains("Unauthorized")) {
+                            showAlert("Sesja wygasła", "Twoja sesja dobiegła końca. Zaloguj się ponownie.", Alert.AlertType.WARNING);
+                            forceLogout();
+                        } else {
+                            showAlert("Błąd", "Błąd podczas pobierania danych: " + error, Alert.AlertType.ERROR);
+                        }
+                    });
+                    return null;
+                });
+    }
+
+    private void setupFiltering() {
+        FilteredList<StaffDTO> filtered = new FilteredList<>(masterData, p -> true);
+        searchField.textProperty().addListener((o, old, v) -> {
+            String f = v.toLowerCase().trim();
+            filtered.setPredicate(s -> f.isEmpty() || Stream.of(
+                    s.getUser().getFullName(),
+                    s.getUser().getEmail(),
+                    s.getUser().getUsername()
+            ).anyMatch(field -> field != null && field.toLowerCase().contains(f)));
+        });
+        SortedList<StaffDTO> sorted = new SortedList<>(filtered);
+        sorted.comparatorProperty().bind(staffTable.comparatorProperty());
+        staffTable.setItems(sorted);
+    }
+
+    private void handleDemote(StaffDTO s) {
+        String currentUser = UserSession.getInstance().getToken().getUsername();
+        boolean isSelfDemote = s.getUser().getUsername().equals(currentUser);
+        Alert a = new Alert(Alert.AlertType.CONFIRMATION);
+        a.setTitle("Potwierdzenie zwolnienia");
+        a.setHeaderText(null);
+        a.setContentText("Czy na pewno chcesz zwolnić pracownika " + s.getUser().getUsername() + "?");
+        styleControl(a, "Tak, zwolnij", "Anuluj");
+        a.showAndWait().filter(r -> r.getButtonData().isDefaultButton()).ifPresent(r -> {
+            MainController.setLoading(true);
+            apiClient.send("/staff/" + s.getId(), "DELETE", null, Void.class)
+                    .thenRun(() -> {
+                        if (isSelfDemote) {
+                            forceLogout();
+                        } else {
+                            Platform.runLater(this::refreshData);
+                        }
+                    })
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            MainController.setLoading(false);
+                            String error = ApiClient.getErrorMessage(ex);
+                            showAlert("Błąd", "Nie udało się zwolnić pracownika: " + error, Alert.AlertType.ERROR);
+                        });
+                        return null;
+                    });
+        });
     }
 
     @FXML private void handleAddNewStaff() { showStaffDialog(null); }
 
-    private void loadMockData() {
-        masterData.add(StaffDTO.builder().id(1L).user(new UserDTO(1L, "admin", "Jan", "Kowalski", "a@b.pl", UserRole.ADMIN))
-                .phoneNumber("123-123-123").salary(5000.0).hireDate(LocalDate.now()).build());
+    private void styleControl(Dialog<?> d, String okT, String canT) {
+        DialogPane p = d.getDialogPane();
+        p.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
+        p.getStyleClass().add("root-container");
+        if (canT == null) {
+            p.getButtonTypes().setAll(ButtonType.OK);
+        } else {
+            p.getButtonTypes().setAll(new ButtonType(okT, ButtonBar.ButtonData.OK_DONE), ButtonType.CANCEL);
+        }
+        Button ok = (Button) p.lookupButton(p.getButtonTypes().get(0));
+        if (ok != null) {
+            ok.getStyleClass().add("button-primary");
+            ok.setText(okT);
+        }
+        if (canT != null && p.getButtonTypes().size() > 1) {
+            Button can = (Button) p.lookupButton(ButtonType.CANCEL);
+            can.getStyleClass().add("button-outline-danger");
+            can.setText(canT);
+        }
+    }
+
+    private void showAlert(String t, String c, Alert.AlertType type) {
+        Alert a = new Alert(type, c);
+        a.setTitle(t);
+        a.setHeaderText(null);
+        styleControl(a, "Rozumiem", null);
+        a.showAndWait();
+    }
+
+    private void forceLogout() {
+        Platform.runLater(() -> {
+            try {
+                UserSession.logout();
+                Stage stage = (Stage) staffTable.getScene().getWindow();
+                var loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/login-view.fxml"));
+                stage.setScene(new Scene(loader.load(), 1200, 900));
+                stage.setTitle("Logowanie");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 }

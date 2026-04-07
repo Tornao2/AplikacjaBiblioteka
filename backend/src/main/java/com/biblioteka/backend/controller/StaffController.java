@@ -3,6 +3,7 @@ package com.biblioteka.backend.controller;
 import com.biblioteka.backend.dto.StaffDTO;
 import com.biblioteka.backend.dto.StaffRegistrationRequest;
 import com.biblioteka.backend.service.StaffService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class StaffController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createStaff(@RequestBody StaffRegistrationRequest request) {
+    public ResponseEntity<?> createStaff(@Valid @RequestBody StaffRegistrationRequest request) {
         try {
             StaffDTO createdStaff = staffService.createStaff(request);
             return ResponseEntity.ok(createdStaff);
@@ -31,6 +32,16 @@ public class StaffController {
                 return ResponseEntity.status(400).body("400:Login lub email jest już zajęty.");
             }
             return ResponseEntity.status(500).body("Błąd podczas tworzenia pracownika.");
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateStaff(@PathVariable Long id, @Valid @RequestBody StaffRegistrationRequest request) {
+        try {
+            StaffDTO updatedStaff = staffService.updateStaff(id, request);
+            return ResponseEntity.ok(updatedStaff);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body("Błąd podczas aktualizacji danych: " + e.getMessage());
         }
     }
 

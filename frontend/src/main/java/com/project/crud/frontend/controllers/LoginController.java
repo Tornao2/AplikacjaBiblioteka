@@ -35,17 +35,26 @@ public class LoginController {
     private void handleLogin() {
         setLoading(true);
         errorCont.setVisible(false);
-        var request = Map.of("username", usernameField.getText(), "password", passwordField.getText());
+        var request = Map.of(
+                "username", usernameField.getText(),
+                "password", passwordField.getText()
+        );
         apiClient.send("/auth/login", "POST", request, AuthResponse.class)
                 .thenAccept(res -> Platform.runLater(() -> {
                     setLoading(false);
-                    if (res != null) {
-                        UserSession.login(res);
-                        loadMainView();
-                    } else showError("Błędny login lub hasło!");
+                    UserSession.login(res);
+                    loadMainView();
                 }))
                 .exceptionally(ex -> {
-                    Platform.runLater(() -> { setLoading(false); showError("Błąd połączenia z serwerem."); });
+                    Platform.runLater(() -> {
+                        setLoading(false);
+                        String msg = ApiClient.getErrorMessage(ex);
+                        if (msg != null && (msg.contains("401") || msg.contains("Unauthorized"))) {
+                            showError("Błędny login lub hasło!");
+                        } else {
+                            showError("Błąd: " + (msg != null ? msg : "Serwer nie odpowiada"));
+                        }
+                    });
                     return null;
                 });
     }
@@ -68,6 +77,7 @@ public class LoginController {
         try {
             var loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/main-view.fxml"));
             Stage stage = (Stage) usernameField.getScene().getWindow();
+            stage.setTitle("Zarządzanie biblioteką");
             stage.setScene(new Scene(loader.load(), 1200, 900));
             stage.centerOnScreen();
         } catch (Exception e) { showError("Błąd krytyczny interfejsu!"); }

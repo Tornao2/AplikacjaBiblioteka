@@ -1,5 +1,6 @@
 package com.project.crud.frontend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,6 +17,7 @@ public class UserDTO {
     private String lastName;
     private String email;
     private UserRole role;
+    @JsonIgnore
     public String getFullName() {
         return (firstName != null ? firstName : "") + " " + (lastName != null ? lastName : "");
     }
