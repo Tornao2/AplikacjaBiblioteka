@@ -43,9 +43,7 @@ public class AdminSettingsController {
                     }
                 }))
                 .exceptionally(e -> {
-                    Platform.runLater(() -> {
-                        MainController.setLoading(false);
-                    });
+                    Platform.runLater(() -> MainController.setLoading(false));
                     return null;
                 });
     }

@@ -18,7 +18,7 @@
                 <TableColumn fx:id="colEmail" text="Email" prefWidth="160"/>
                 <TableColumn fx:id="colRole" text="Rola" prefWidth="90"/>
                 <TableColumn fx:id="colPhone" text="Telefon" prefWidth="90"/>
-                <TableColumn fx:id="colSalary" text="Pensja" prefWidth="80"/>
+                <TableColumn fx:id="colSalary" text="Pensja"/>
                 <TableColumn fx:id="colHireDate" text="Zatrudniony od" prefWidth="110"/>
                 <TableColumn fx:id="colActions" text="Zarządzaj" prefWidth="150"/>
             </columns>
