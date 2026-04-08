@@ -86,8 +86,8 @@ public class AdminUsersController {
                 email = new TextField(isEdit ? s.getUser().getEmail() : ""),
                 phone = new TextField(isEdit ? s.getPhoneNumber() : ""),
                 salary = new TextField(isEdit ? String.valueOf(s.getSalary()) : "");
-        ComboBox<UserRole> roleCombo = new ComboBox<>(FXCollections.observableArrayList(UserRole.ADMIN, UserRole.LIBRARIAN));
-        roleCombo.setValue(isEdit ? s.getUser().getRole() : UserRole.LIBRARIAN);
+        ComboBox<UserRole> roleCombo = new ComboBox<>(FXCollections.observableArrayList(UserRole.Admin, UserRole.Bibliotekarz));
+        roleCombo.setValue(isEdit ? s.getUser().getRole() : UserRole.Bibliotekarz);
         roleCombo.setMaxWidth(Double.MAX_VALUE);
         user.setDisable(isEdit);
         DatePicker hire = new DatePicker(isEdit ? s.getHireDate() : LocalDate.now());

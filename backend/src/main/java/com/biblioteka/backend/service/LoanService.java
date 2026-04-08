@@ -39,7 +39,7 @@ public class LoanService {
         SystemSettingsDTO settings = settingsService.getSettings();
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Książka o ID " + bookId + " nie istnieje."));
-        if (!BookStatus.AVAILABLE.equals(book.getStatus())) {
+        if (!BookStatus.Dostepna.equals(book.getStatus())) {
             throw new RuntimeException("Książka jest już wypożyczona.");
         }
         User user = userRepository.findById(userId)
@@ -53,7 +53,7 @@ public class LoanService {
                 .extended(false)
                 .overduePay(0L)
                 .build();
-        book.setStatus(BookStatus.RENTED);
+        book.setStatus(BookStatus.Wypozyczona);
         bookRepository.save(book);
         Loan saved = loanRepository.save(loan);
         logService.addLog(user.getUsername(), "LOAN_START",

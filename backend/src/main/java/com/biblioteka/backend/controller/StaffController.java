@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/staff")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('Admin')")
 @CrossOrigin(origins = "*")
 public class StaffController {
     private final StaffService staffService;

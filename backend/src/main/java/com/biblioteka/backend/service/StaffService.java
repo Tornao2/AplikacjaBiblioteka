@@ -41,7 +41,7 @@ public class StaffService {
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
                 .email(request.getEmail())
-                .role(request.getRole() != null ? request.getRole() : UserRole.LIBRARIAN)
+                .role(request.getRole() != null ? request.getRole() : UserRole.Bibliotekarz)
                 .build();
         User savedUser = userRepository.save(user);
         Staff staff = Staff.builder()
@@ -84,7 +84,7 @@ public class StaffService {
         staffRepository.findById(staffId).ifPresent(staff -> {
             User user = staff.getUser();
             String fullName = user.getFullName();
-            user.setRole(UserRole.USER);
+            user.setRole(UserRole.Czytelnik);
             user.setStaffDetails(null);
             staff.setUser(null);
             userRepository.save(user);

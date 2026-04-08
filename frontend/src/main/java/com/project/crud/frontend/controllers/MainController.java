@@ -30,8 +30,8 @@ public class MainController {
         if (session != null) {
             welcomeLabel.setText("Zalogowano jako: " + session.getToken().getUsername());
             UserRole role = session.getToken().getRole();
-            boolean isStaff = role == UserRole.LIBRARIAN || role == UserRole.ADMIN;
-            boolean isAdmin = role == UserRole.ADMIN;
+            boolean isStaff = role == UserRole.Bibliotekarz || role == UserRole.Admin;
+            boolean isAdmin = role == UserRole.Admin;
             configureNodes(isStaff, librarianSectionLabel, userSectionLabel, staffSearchBtn, inventoryBtn, addBtn);
             configureNodes(isAdmin, adminSectionLabel, staffBtn, systemBtn, logsBtn, delBtn, managBtn);
         }

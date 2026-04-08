@@ -5,38 +5,38 @@ DELETE FROM books;
 
 INSERT INTO books (title, author, isbn, category, release_year, status, description)
 VALUES
-('Wiedźmin: Ostatnie życzenie', 'Andrzej Sapkowski', '9788375900989', 'Fantasy', 1993, 'AVAILABLE',
+('Wiedźmin: Ostatnie życzenie', 'Andrzej Sapkowski', '9788375900989', 'Fantasy', 1993, 'Dostepna',
  'Zbiór opowiadań o wiedźminie Geralcie z Rivii.'),
 
-('1984', 'George Orwell', '9788373926516', 'Dystopia', 1949, 'AVAILABLE',
+('1984', 'George Orwell', '9788373926516', 'Dystopia', 1949, 'Dostepna',
  'Wizja totalitarnej przyszłości pod okiem Wielkiego Brata.'),
 
-('Zbrodnia i kara', 'Fiodor Dostojewski', '9788377794357', 'Klasyka', 1866, 'RENTED',
+('Zbrodnia i kara', 'Fiodor Dostojewski', '9788377794357', 'Klasyka', 1866, 'Wypozyczona',
  'Psychologiczne studium morderstwa i sumienia.'),
 
-('Marsjanin', 'Andy Weir', '9788328701045', 'Sci-Fi', 2011, 'AVAILABLE',
+('Marsjanin', 'Andy Weir', '9788328701045', 'Sci-Fi', 2011, 'Dostepna',
  'Historia astronauty, który musi przetrwać samotnie na Marsie.'),
 
-('Steve Jobs', 'Walter Isaacson', '9788308048122', 'Biografia', 2011, 'RENTED',
+('Steve Jobs', 'Walter Isaacson', '9788308048122', 'Biografia', 2011, 'Wypozyczona',
  'Oficjalna biografia założyciela Apple.'),
 
-('Sapiens', 'Yuval Noah Harari', '9788308064139', 'Nauka', 2014, 'RENTED',
+('Sapiens', 'Yuval Noah Harari', '9788308064139', 'Nauka', 2014, 'Wypozyczona',
  'Opowieść o historii gatunku ludzkiego.'),
 
-('Hobbit', 'J.R.R. Tolkien', '9788324403752', 'Fantasy', 1937, 'AVAILABLE',
+('Hobbit', 'J.R.R. Tolkien', '9788324403752', 'Fantasy', 1937, 'Dostepna',
  'Przygody Bilbo Bagginsa w drodze do Samotnej Góry.');
 
 INSERT INTO system_settings (id, max_loan_duration, user_loan_limit, daily_penalty_rate)
 VALUES (1, 30, 5, 0.5);
 
 INSERT INTO users (username, password, first_name, last_name, email, role)
-VALUES ('admin', '$2a$10$Pw4d/82XBJQMnV7pEid3DOxfNVvgEMs./E3h5Nj7xDdyi4DtWEwti', 'System', 'Administrator', 'admin@biblioteka.pl', 'ADMIN');
+VALUES ('biblio', '$2a$10$lkqF2wdYpoBsu8jdjqxzne8g4AfuHAwkfybnRS1LOVahqdD9Oamum', 'Jan', 'Kowalski', 'j.kowalski@biblioteka.pl', 'Bibliotekarz');
 
 INSERT INTO users (username, password, first_name, last_name, email, role)
-VALUES ('biblio', '$2a$10$lkqF2wdYpoBsu8jdjqxzne8g4AfuHAwkfybnRS1LOVahqdD9Oamum', 'Jan', 'Kowalski', 'j.kowalski@biblioteka.pl', 'LIBRARIAN');
+VALUES ('admin', '$2a$10$Pw4d/82XBJQMnV7pEid3DOxfNVvgEMs./E3h5Nj7xDdyi4DtWEwti', 'System', 'Administrator', 'admin@biblioteka.pl', 'Admin');
 
 INSERT INTO users (username, password, first_name, last_name, email, role)
-VALUES ('user', '$2a$10$HGyrSZI8stl2.RzU75hI3uOtcYfKBCudERDACRGY2pQsqHIKIkG/K', 'Anna', 'Nowak', 'a.nowak@poczta.pl', 'USER');
+VALUES ('user', '$2a$10$HGyrSZI8stl2.RzU75hI3uOtcYfKBCudERDACRGY2pQsqHIKIkG/K', 'Anna', 'Nowak', 'a.nowak@poczta.pl', 'Czytelnik');
 
 INSERT INTO staff_details (user_id, phone_number, hire_date, salary)
 VALUES ((SELECT id FROM users WHERE username = 'admin'), '123456789', TO_DATE('2020-01-01', 'YYYY-MM-DD'), 8500.00);

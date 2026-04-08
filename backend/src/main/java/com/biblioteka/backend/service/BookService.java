@@ -30,8 +30,8 @@ public class BookService {
     @Transactional
     public BookDTO saveBook(BookDTO dto) {
         Book book;
-        if (dto.getStatus() !=  BookStatus.AVAILABLE){
-            throw new RuntimeException("Książka nie jest w statusie AVAILABLE");
+        if (dto.getStatus() !=  BookStatus.Dostepna){
+            throw new RuntimeException("Książka nie jest w statusie Dostepna");
         }
         boolean isUpdate = dto.getId() != null;
         if (isUpdate) {

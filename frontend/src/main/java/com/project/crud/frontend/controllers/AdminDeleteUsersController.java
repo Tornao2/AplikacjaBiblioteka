@@ -110,9 +110,9 @@ public class AdminDeleteUsersController {
 
     private void loadInitialData() {
         masterData.addAll(
-                createUser(1L, "admin_super", "Super", "Admin", "admin@library.com", UserRole.ADMIN),
-                createUser(2L, "jan_nowak", "Jan", "Nowak", "j.nowak@gmail.com", UserRole.USER),
-                createUser(3L, "bibliotekarz1", "Marta", "Zielińska", "staff@library.com", UserRole.LIBRARIAN)
+                createUser(1L, "admin_super", "Super", "Admin", "admin@library.com", UserRole.Admin),
+                createUser(2L, "jan_nowak", "Jan", "Nowak", "j.nowak@gmail.com", UserRole.Czytelnik),
+                createUser(3L, "bibliotekarz1", "Marta", "Zielińska", "staff@library.com", UserRole.Bibliotekarz)
         );
     }
 

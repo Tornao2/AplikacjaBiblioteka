@@ -66,7 +66,7 @@ public class UserManagementController {
                 .disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
         dialog.setResultConverter(btn -> btn.getButtonData().isDefaultButton() ? table.getSelectionModel().getSelectedItem() : null);
         dialog.showAndWait().ifPresent(book -> {
-            book.setStatus(BookStatus.RENTED);
+            book.setStatus(BookStatus.Wypozyczona);
             allLoans.add(LoanDTO.builder()
                     .userId(selectedUser.getId()).bookId(book.getId()).bookTitle(book.getTitle())
                     .dueDate(LocalDate.now().plusDays(14)).loanDate(LocalDate.now()).overduePay(0L).build());
@@ -91,10 +91,10 @@ public class UserManagementController {
         search.setPromptText("Szukaj po tytule, autorze lub ISBN...");
         search.getStyleClass().add("text-field");
         search.setPrefHeight(35);
-        FilteredList<BookDTO> available = new FilteredList<>(masterInventory, b -> BookStatus.AVAILABLE.equals(b.getStatus()));
+        FilteredList<BookDTO> available = new FilteredList<>(masterInventory, b -> BookStatus.Dostepna.equals(b.getStatus()));
         search.textProperty().addListener((obs, old, val) -> {
             String f = val.toLowerCase().trim();
-            available.setPredicate(b -> BookStatus.AVAILABLE.equals(b.getStatus()) && (f.isEmpty() ||
+            available.setPredicate(b -> BookStatus.Dostepna.equals(b.getStatus()) && (f.isEmpty() ||
                     Stream.of(b.getTitle(), b.getAuthor(), b.getIsbn()).anyMatch(s -> s.toLowerCase().contains(f))));
         });
         table.setItems(available);
@@ -108,7 +108,7 @@ public class UserManagementController {
         loan.setReturnDate(LocalDate.now());
         masterInventory.stream()
                 .filter(b -> b.getId().equals(loan.getBookId()))
-                .findFirst().ifPresent(b -> b.setStatus(BookStatus.AVAILABLE));
+                .findFirst().ifPresent(b -> b.setStatus(BookStatus.Dostepna));
 
         showLoansForUser(loan.getUserId());
         showInfo("Zwrócono książkę.");
@@ -156,10 +156,10 @@ public class UserManagementController {
 
     private void loadMockData() {
         allUsers.addAll(
-                new UserDTO(1L, "Jan", "Jan", "Kowalski","jan@wp.pl", UserRole.USER),
-                new UserDTO(2L, "Anna", "Anna", "Nowak","ania@gmail.com", UserRole.ADMIN)
+                new UserDTO(1L, "Jan", "Jan", "Kowalski","jan@wp.pl", UserRole.Czytelnik),
+                new UserDTO(2L, "Anna", "Anna", "Nowak","ania@gmail.com", UserRole.Admin)
         );
-        masterInventory.add(new BookDTO(105L, "Czysty Kod", "Robert C. Martin", "9788328", "Edukacja", BookStatus.AVAILABLE, "Podręcznik programowania", 2008));
+        masterInventory.add(new BookDTO(105L, "Czysty Kod", "Robert C. Martin", "9788328", "Edukacja", BookStatus.Dostepna, "Podręcznik programowania", 2008));
         allLoans.add(LoanDTO.builder().userId(1L).bookId(101L).bookTitle("Wiedźmin").dueDate(LocalDate.now().plusDays(5)).overduePay(0L).build());
     }
 }

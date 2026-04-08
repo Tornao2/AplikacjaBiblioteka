@@ -23,20 +23,20 @@ public class BookController {
         return ResponseEntity.ok(bookService.getAllBooks());
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('Admin', 'Bibliotekarz')")
     @PostMapping
     public ResponseEntity<BookDTO> add(@Valid @RequestBody BookDTO bookDTO) {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookService.saveBook(bookDTO));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('Admin', 'Bibliotekarz')")
     @PutMapping("/{id}")
     public ResponseEntity<BookDTO> update(@PathVariable Long id, @Valid @RequestBody BookDTO bookDTO) {
         bookDTO.setId(id);
         return ResponseEntity.ok(bookService.saveBook(bookDTO));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
+    @PreAuthorize("hasAnyRole('Admin', 'Bibliotekarz')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         try {

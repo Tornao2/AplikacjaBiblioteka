@@ -12,7 +12,7 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/settings")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasRole('Admin')")
 public class SystemSettingsController {
     private final SystemSettingsService settingsService;
     @GetMapping

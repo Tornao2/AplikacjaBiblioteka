@@ -35,7 +35,7 @@ public class AddUserController {
                     .lastName(lastNameField.getText())
                     .email(emailField.getText())
                     .username(usernameField.getText())
-                    .role(UserRole.USER)
+                    .role(UserRole.Czytelnik)
                     .build();
             showInfo("Czytelnik " + newUser.getFirstName() + " " + newUser.getLastName() + " dodany.", Alert.AlertType.INFORMATION);
             handleClear();

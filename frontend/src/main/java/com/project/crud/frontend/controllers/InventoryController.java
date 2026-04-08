@@ -117,7 +117,7 @@ public class InventoryController {
                     setGraphic(null);
                 } else {
                     BookDTO book = getTableRow().getItem();
-                    boolean isNotAvailable = !"AVAILABLE".equals(String.valueOf(book.getStatus()));
+                    boolean isNotAvailable = !"Dostepna".equals(String.valueOf(book.getStatus()));
                     del.setDisable(isNotAvailable);
                     edit.setDisable(isNotAvailable);
                     setGraphic(container);
@@ -152,7 +152,7 @@ public class InventoryController {
                     .category(categoryCombo.getValue())
                     .description(descriptionArea.getText().trim())
                     .releaseYear(year)
-                    .status(BookStatus.AVAILABLE)
+                    .status(BookStatus.Dostepna)
                     .build();
             MainController.setLoading(true);
             apiClient.send("/books", "POST", newBook, BookDTO.class)
