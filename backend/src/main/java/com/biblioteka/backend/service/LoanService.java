@@ -3,6 +3,7 @@ package com.biblioteka.backend.service;
 import com.biblioteka.backend.dto.LoanDTO;
 import com.biblioteka.backend.dto.SystemSettingsDTO;
 import com.biblioteka.backend.entity.Book;
+import com.biblioteka.backend.entity.BookStatus;
 import com.biblioteka.backend.entity.Loan;
 import com.biblioteka.backend.entity.User;
 import com.biblioteka.backend.repository.BookRepository;
@@ -19,7 +20,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class LoanService {
-
     private final LoanRepository loanRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
@@ -39,7 +39,7 @@ public class LoanService {
         SystemSettingsDTO settings = settingsService.getSettings();
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Książka o ID " + bookId + " nie istnieje."));
-        if (!"AVAILABLE".equalsIgnoreCase(book.getStatus())) {
+        if (!BookStatus.AVAILABLE.equals(book.getStatus())) {
             throw new RuntimeException("Książka jest już wypożyczona.");
         }
         User user = userRepository.findById(userId)
@@ -53,7 +53,7 @@ public class LoanService {
                 .extended(false)
                 .overduePay(0L)
                 .build();
-        book.setStatus("BORROWED");
+        book.setStatus(BookStatus.RENTED);
         bookRepository.save(book);
         Loan saved = loanRepository.save(loan);
         logService.addLog(user.getUsername(), "LOAN_START",

@@ -1,52 +1,95 @@
 package com.project.crud.frontend.controllers;
 
+import com.project.crud.frontend.ApiClient;
 import com.project.crud.frontend.model.BookDTO;
+import com.project.crud.frontend.model.BookStatus;
+import com.project.crud.frontend.model.FinanceType;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
+
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 public class InventoryController {
     @FXML private TextField titleField, authorField, isbnField, yearField, descriptionArea;
     @FXML private ComboBox<String> categoryCombo;
     @FXML private TableView<BookDTO> inventoryTable;
-    @FXML private TableColumn<BookDTO, Long> colId;
-    @FXML private TableColumn<BookDTO, String> colTitle, colAuthor, colStatus, colIsbn, colCategory, colDescription;
+    @FXML private TableColumn<BookDTO, String> colTitle, colAuthor, colIsbn, colCategory, colDescription;
+    @FXML private TableColumn<BookDTO, BookStatus> colStatus;
     @FXML private TableColumn<BookDTO, Integer> colYear;
     @FXML private TableColumn<BookDTO, Void> colActions;
     @FXML private Button addBtn;
+    @FXML private TextField filterField;
 
-    static final ObservableList<BookDTO> masterInventory = FXCollections.observableArrayList();
+    private final ObservableList<BookDTO> masterInventory = FXCollections.observableArrayList();
+    private ApiClient apiClient;
 
     @FXML
     public void initialize() {
+        categoryCombo.setPromptText("Wybierz kategorię");
+        this.apiClient = new ApiClient(titleField);
         setupColumns();
-        categoryCombo.setItems(FXCollections.observableArrayList("Fantasy", "Kryminał", "Dystopia", "Nauka", "Biografia", "Inne"));
+        categoryCombo.setItems(FXCollections.observableArrayList("Fantasy", "Klasyka", "Sci-Fi", "Kryminał", "Dystopia", "Nauka", "Biografia", "Inne"));
         inventoryTable.setItems(masterInventory);
         inventoryTable.setPlaceholder(new Label("Brak książek w systemie."));
         yearField.textProperty().addListener((obs, old, val) -> { if (!val.matches("\\d*")) yearField.setText(old); });
+        setupValidation();
+        setupSearch();
+        refreshData();
+    }
+
+    private void setupValidation() {
         addBtn.disableProperty().bind(titleField.textProperty().isEmpty()
                 .or(authorField.textProperty().isEmpty()).or(yearField.textProperty().isEmpty())
                 .or(categoryCombo.valueProperty().isNull()).or(isbnField.textProperty().isEmpty())
                 .or(descriptionArea.textProperty().isEmpty()));
     }
 
+    private void setupSearch() {
+        FilteredList<BookDTO> filteredData = new FilteredList<>(masterInventory, p -> true);
+        filterField.textProperty().addListener((observable, oldValue, newValue) -> {
+            filteredData.setPredicate(book -> {
+                if (newValue == null || newValue.isEmpty()) {
+                    return true;
+                }
+                String lowerCaseFilter = newValue.toLowerCase().trim();
+                if (book.getTitle().toLowerCase().contains(lowerCaseFilter)) {
+                    return true;
+                } else if (book.getAuthor().toLowerCase().contains(lowerCaseFilter)) {
+                    return true;
+                } else if (book.getIsbn().contains(lowerCaseFilter)) {
+                    return true;
+                } else if (book.getCategory().toLowerCase().contains(lowerCaseFilter)) {
+                    return true;
+                }
+                return false;
+            });
+        });
+        SortedList<BookDTO> sortedData = new SortedList<>(filteredData);
+        sortedData.comparatorProperty().bind(inventoryTable.comparatorProperty());
+        inventoryTable.setItems(sortedData);
+    }
+
     private void setupColumns() {
-        colId.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getId()));
         colTitle.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getTitle()));
         colAuthor.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getAuthor()));
         colIsbn.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getIsbn()));
         colCategory.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getCategory()));
         colYear.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getReleaseYear()));
-        colStatus.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getStatus()));
+        colStatus.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getStatus()));
         colDescription.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getDescription()));
         colDescription.setCellFactory(tc -> new TableCell<>() {
             private final Text t = new Text();
@@ -71,20 +114,63 @@ public class InventoryController {
                 edit.setOnAction(e -> showEditDialog(getTableView().getItems().get(getIndex())));
                 del.setOnAction(e -> handleDelete(getTableView().getItems().get(getIndex())));
             }
-            @Override protected void updateItem(Void i, boolean e) { super.updateItem(i, e); setGraphic(e ? null : container); }
-        });
+            @Override
+            protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || getTableRow() == null || getTableRow().getItem() == null) {
+                    setGraphic(null);
+                } else {
+                    BookDTO book = getTableRow().getItem();
+                    boolean isNotAvailable = !"AVAILABLE".equals(String.valueOf(book.getStatus()));
+                    del.setDisable(isNotAvailable);
+                    edit.setDisable(isNotAvailable);
+                    setGraphic(container);
+                }
+            } });
+    }
+
+    private void refreshData() {
+        MainController.setLoading(true);
+        apiClient.send("/books", "GET", null, BookDTO[].class)
+                .thenAccept(arr -> Platform.runLater(() -> {
+                    MainController.setLoading(false);
+                    if (arr != null) masterInventory.setAll(Arrays.asList(arr));
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        MainController.setLoading(false);
+                        showAlert("Błąd pobierania: " + ApiClient.getErrorMessage(ex));
+                    });
+                    return null;
+                });
     }
 
     @FXML
     private void handleAddBook() {
         try {
             int year = Integer.parseInt(yearField.getText().trim());
-            if (year < 1000 || year > 2026) { showAlert("Podaj realny rok (1000-2026)."); return; }
-            masterInventory.add(BookDTO.builder().id((long) (masterInventory.size() + 1))
-                    .title(titleField.getText().trim()).author(authorField.getText().trim())
-                    .isbn(isbnField.getText().trim()).category(categoryCombo.getValue())
-                    .description(descriptionArea.getText().trim()).releaseYear(year).status("AVAILABLE").build());
-            clearFields();
+            BookDTO newBook = BookDTO.builder()
+                    .title(titleField.getText().trim())
+                    .author(authorField.getText().trim())
+                    .isbn(isbnField.getText().trim())
+                    .category(categoryCombo.getValue())
+                    .description(descriptionArea.getText().trim())
+                    .releaseYear(year)
+                    .status(BookStatus.AVAILABLE)
+                    .build();
+            MainController.setLoading(true);
+            apiClient.send("/books", "POST", newBook, BookDTO.class)
+                    .thenAccept(res -> Platform.runLater(() -> {
+                        refreshData();
+                        clearFields();
+                    }))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            MainController.setLoading(false);
+                            showAlert("Błąd zapisu: " + ApiClient.getErrorMessage(ex));
+                        });
+                        return null;
+                    });
         } catch (Exception e) { showAlert("Nieprawidłowe dane!"); }
     }
 
@@ -98,25 +184,63 @@ public class InventoryController {
         ComboBox<String> eCat = new ComboBox<>(categoryCombo.getItems()); eCat.setValue(book.getCategory());
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10); grid.setPadding(new Insets(20));
-        String[] labels = {"Tytuł:", "Autor:", "ISBN:", "Rok:", "Kategoria:", "Opis:"};
-        Control[] fields = {eTitle, eAuthor, eIsbn, eYear, eCat, eDesc};
-        for (int i = 0; i < labels.length; i++) grid.addRow(i, new Label(labels[i]), fields[i]);
+        grid.addRow(0, new Label("Tytuł:"), eTitle);
+        grid.addRow(1, new Label("Autor:"), eAuthor);
+        grid.addRow(2, new Label("ISBN:"), eIsbn);
+        grid.addRow(3, new Label("Rok:"), eYear);
+        grid.addRow(4, new Label("Kategoria:"), eCat);
+        grid.addRow(5, new Label("Opis:"), eDesc);
         dialog.getDialogPane().setContent(grid);
-        dialog.setResultConverter(btn -> btn.getButtonData().isDefaultButton() ? updateBook(book, eTitle, eAuthor, eIsbn, eCat, eYear, eDesc) : null);
-        dialog.showAndWait().ifPresent(r -> inventoryTable.refresh());
-    }
-
-    private BookDTO updateBook(BookDTO b, TextField t, TextField a, TextField i, ComboBox<String> c, TextField y, TextField d) {
-        b.setTitle(t.getText().trim()); b.setAuthor(a.getText().trim()); b.setIsbn(i.getText().trim());
-        b.setCategory(c.getValue()); b.setReleaseYear(Integer.parseInt(y.getText().trim())); b.setDescription(d.getText().trim());
-        return b;
+        Button saveBtn = (Button) dialog.getDialogPane().lookupButton(dialog.getDialogPane().getButtonTypes().get(0));
+        saveBtn.disableProperty().bind(
+                eTitle.textProperty().isEmpty()
+                        .or(eAuthor.textProperty().isEmpty())
+                        .or(eIsbn.textProperty().isEmpty())
+                        .or(eYear.textProperty().isEmpty())
+                        .or(eCat.valueProperty().isNull())
+                        .or(eDesc.textProperty().isEmpty())
+        );
+        dialog.setResultConverter(btn -> {
+            if (btn.getButtonData().isDefaultButton()) {
+                book.setTitle(eTitle.getText().trim());
+                book.setAuthor(eAuthor.getText().trim());
+                book.setIsbn(eIsbn.getText().trim());
+                book.setCategory(eCat.getValue());
+                book.setReleaseYear(Integer.parseInt(eYear.getText().trim()));
+                book.setDescription(eDesc.getText().trim());
+                return book;
+            }
+            return null;
+        });
+        dialog.showAndWait().ifPresent(updatedBook -> {
+            MainController.setLoading(true);
+            apiClient.send("/books/" + updatedBook.getId(), "PUT", updatedBook, BookDTO.class)
+                    .thenAccept(res -> Platform.runLater(this::refreshData))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            MainController.setLoading(false);
+                            showAlert("Błąd edycji: " + ApiClient.getErrorMessage(ex));
+                        });
+                        return null;
+                    });
+        });
     }
 
     private void handleDelete(BookDTO book) {
-        if ("RENTED".equals(book.getStatus())) { showAlert("Książka jest wypożyczona!"); return; }
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Usunąć książkę: " + book.getTitle() + "?");
         styleControl(alert, "Tak, usuń", "Anuluj");
-        alert.showAndWait().filter(r -> r == ButtonType.OK).ifPresent(r -> masterInventory.remove(book));
+        alert.showAndWait().filter(r -> r.getButtonData().isDefaultButton()).ifPresent(r -> {
+            MainController.setLoading(true);
+            apiClient.send("/books/" + book.getId(), "DELETE", null, Void.class)
+                    .thenRun(() -> Platform.runLater(this::refreshData))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            MainController.setLoading(false);
+                            showAlert("Błąd usuwania: " + ApiClient.getErrorMessage(ex));
+                        });
+                        return null;
+                    });
+        });
     }
 
     private void styleControl(Dialog<?> d, String okT, String canT) {
@@ -124,11 +248,15 @@ public class InventoryController {
         p.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
         p.getStyleClass().add("root-container");
         d.setHeaderText(null);
-        p.getButtonTypes().setAll(new ButtonType(okT, ButtonBar.ButtonData.OK_DONE), ButtonType.CANCEL);
-        (p.lookupButton(p.getButtonTypes().get(0))).getStyleClass().add("button-primary");
-        Button can = (Button) p.lookupButton(ButtonType.CANCEL);
-        can.getStyleClass().add("button-outline-danger");
-        if (canT != null) can.setText(canT);
+        if (canT != null) {
+            p.getButtonTypes().setAll(new ButtonType(okT, ButtonBar.ButtonData.OK_DONE), ButtonType.CANCEL);
+            Button can = (Button) p.lookupButton(ButtonType.CANCEL);
+            can.getStyleClass().add("button-outline-danger");
+            can.setText(canT);
+        } else {
+            p.getButtonTypes().setAll(new ButtonType(okT, ButtonBar.ButtonData.OK_DONE));
+        }
+        p.lookupButton(p.getButtonTypes().get(0)).getStyleClass().add("button-primary");
     }
 
     private void showAlert(String content) {
@@ -140,6 +268,18 @@ public class InventoryController {
 
     private void clearFields() {
         Stream.of(titleField, authorField, isbnField, yearField, descriptionArea).forEach(TextInputControl::clear);
+        categoryCombo.getSelectionModel().select(-1);
         categoryCombo.setValue(null);
+        categoryCombo.setButtonCell(new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(categoryCombo.getPromptText());
+                } else {
+                    setText(item);
+                }
+            }
+        });
     }
 }

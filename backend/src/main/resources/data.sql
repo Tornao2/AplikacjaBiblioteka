@@ -1,6 +1,30 @@
 DELETE FROM staff_details;
 DELETE FROM users;
 DELETE FROM system_settings;
+DELETE FROM books;
+
+INSERT INTO books (title, author, isbn, category, release_year, status, description)
+VALUES
+('Wiedźmin: Ostatnie życzenie', 'Andrzej Sapkowski', '9788375900989', 'Fantasy', 1993, 'AVAILABLE',
+ 'Zbiór opowiadań o wiedźminie Geralcie z Rivii.'),
+
+('1984', 'George Orwell', '9788373926516', 'Dystopia', 1949, 'AVAILABLE',
+ 'Wizja totalitarnej przyszłości pod okiem Wielkiego Brata.'),
+
+('Zbrodnia i kara', 'Fiodor Dostojewski', '9788377794357', 'Klasyka', 1866, 'RENTED',
+ 'Psychologiczne studium morderstwa i sumienia.'),
+
+('Marsjanin', 'Andy Weir', '9788328701045', 'Sci-Fi', 2011, 'AVAILABLE',
+ 'Historia astronauty, który musi przetrwać samotnie na Marsie.'),
+
+('Steve Jobs', 'Walter Isaacson', '9788308048122', 'Biografia', 2011, 'PROLONGED',
+ 'Oficjalna biografia założyciela Apple.'),
+
+('Sapiens', 'Yuval Noah Harari', '9788308064139', 'Nauka', 2014, 'PROLONGED',
+ 'Opowieść o historii gatunku ludzkiego.'),
+
+('Hobbit', 'J.R.R. Tolkien', '9788324403752', 'Fantasy', 1937, 'AVAILABLE',
+ 'Przygody Bilbo Bagginsa w drodze do Samotnej Góry.');
 
 INSERT INTO system_settings (id, max_loan_duration, user_loan_limit, daily_penalty_rate)
 VALUES (1, 30, 5, 0.5);

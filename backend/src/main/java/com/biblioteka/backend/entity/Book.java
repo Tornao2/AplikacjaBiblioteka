@@ -16,16 +16,17 @@ public class Book {
     private Long id;
     @Column(nullable = false)
     private String title;
-    @Column(nullable = false, length = 150)
+    @Column(nullable = false)
     private String author;
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false)
     private String isbn;
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false)
     private String category;
-    @Column(nullable = false, length = 20)
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private BookStatus status;
     @Column(name = "release_year", nullable = false)
     private Integer releaseYear;
-    @Column(length = 2000)
+    @Column(nullable = false)
     private String description;
 }

@@ -1,6 +1,9 @@
 package com.project.crud.frontend.controllers;
 
+import com.project.crud.frontend.ApiClient;
 import com.project.crud.frontend.model.BookDTO;
+import com.project.crud.frontend.model.BookStatus;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -10,21 +13,26 @@ import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
+
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 public class CatalogController {
     @FXML private TextField searchField;
     @FXML private TableView<BookDTO> bookTable;
-    @FXML private TableColumn<BookDTO, String> colTitle, colAuthor, colStatus, colIsbn, colCategory, colDescription;
+    @FXML private TableColumn<BookDTO, String> colTitle, colAuthor, colIsbn, colCategory, colDescription;
     @FXML private TableColumn<BookDTO, Integer> colYear;
+    @FXML private TableColumn<BookDTO, BookStatus> colStatus;
 
     private final ObservableList<BookDTO> masterData = FXCollections.observableArrayList();
+    private ApiClient apiClient;
 
     @FXML
     public void initialize() {
+        this.apiClient = new ApiClient(searchField);
         setupColumns();
         setupSearch();
-        loadMockData();
+        refreshCatalog();
         bookTable.setPlaceholder(new Label("Brak dostępnych książek w katalogu."));
     }
 
@@ -34,7 +42,7 @@ public class CatalogController {
         colIsbn.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getIsbn()));
         colCategory.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getCategory()));
         colYear.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getReleaseYear()));
-        colStatus.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getStatus()));
+        colStatus.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getStatus()));
         colDescription.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getDescription()));
         colDescription.setCellFactory(tc -> new TableCell<>() {
             private final Text t = new Text();
@@ -59,11 +67,20 @@ public class CatalogController {
         bookTable.setItems(sorted);
     }
 
-    private void loadMockData() {
-        masterData.addAll(
-                new BookDTO(1L, "Wiedźmin", "Andrzej Sapkowski", "9788375", "Fantasy", "AVAILABLE", "Opis", 1990),
-                new BookDTO(2L, "Rok 1984", "George Orwell", "9780451", "Dystopia", "RENTED", "DłuższyDłuższyDłuższyDłuższyDłuższyDłuższyDłuższyDłuższyDłuższyDłuższyDłuższyDłuższy opis klasyki literatury.", 1949),
-                new BookDTO(3L, "Hobbit", "J.R.R. Tolkien", "9788324", "Fantasy", "AVAILABLE", "Opis", 1937)
-        );
+    public void refreshCatalog() {
+        MainController.setLoading(true);
+        apiClient.send("/books", "GET", null, BookDTO[].class)
+                .thenAccept(arr -> Platform.runLater(() -> {
+                    MainController.setLoading(false);
+                    if (arr != null) {
+                        masterData.setAll(Arrays.asList(arr));
+                    }
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        MainController.setLoading(false);
+                    });
+                    return null;
+                });
     }
 }

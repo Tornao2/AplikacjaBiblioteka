@@ -2,6 +2,7 @@ package com.biblioteka.backend.service;
 
 import com.biblioteka.backend.dto.BookDTO;
 import com.biblioteka.backend.entity.Book;
+import com.biblioteka.backend.entity.BookStatus;
 import com.biblioteka.backend.repository.BookRepository;
 import com.biblioteka.backend.repository.LoanRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,9 @@ public class BookService {
     @Transactional
     public BookDTO saveBook(BookDTO dto) {
         Book book;
+        if (dto.getStatus() !=  BookStatus.AVAILABLE){
+            throw new RuntimeException("Książka nie jest w statusie AVAILABLE");
+        }
         boolean isUpdate = dto.getId() != null;
         if (isUpdate) {
             book = bookRepository.findById(dto.getId())
@@ -39,9 +43,7 @@ public class BookService {
             book.setCategory(dto.getCategory());
             book.setDescription(dto.getDescription());
             book.setReleaseYear(dto.getReleaseYear());
-            if (dto.getStatus() != null) {
-                book.setStatus(dto.getStatus());
-            }
+            book.setStatus(dto.getStatus());
         } else {
             book = mapToEntity(dto);
         }
@@ -70,7 +72,7 @@ public class BookService {
                 .author(dto.getAuthor())
                 .isbn(dto.getIsbn())
                 .category(dto.getCategory())
-                .status(dto.getStatus() != null ? dto.getStatus() : "AVAILABLE")
+                .status(dto.getStatus())
                 .description(dto.getDescription())
                 .releaseYear(dto.getReleaseYear())
                 .build();

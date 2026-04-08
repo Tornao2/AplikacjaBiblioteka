@@ -1,9 +1,6 @@
 package com.project.crud.frontend.controllers;
 
-import com.project.crud.frontend.model.BookDTO;
-import com.project.crud.frontend.model.LoanDTO;
-import com.project.crud.frontend.model.UserDTO;
-import com.project.crud.frontend.model.UserRole;
+import com.project.crud.frontend.model.*;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -28,6 +25,7 @@ public class UserManagementController {
 
     private final ObservableList<UserDTO> allUsers = FXCollections.observableArrayList();
     private final ObservableList<LoanDTO> allLoans = FXCollections.observableArrayList();
+    private final ObservableList<BookDTO> masterInventory = FXCollections.observableArrayList();
 
     @FXML
     public void initialize() {
@@ -68,7 +66,7 @@ public class UserManagementController {
                 .disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
         dialog.setResultConverter(btn -> btn.getButtonData().isDefaultButton() ? table.getSelectionModel().getSelectedItem() : null);
         dialog.showAndWait().ifPresent(book -> {
-            book.setStatus("RENTED");
+            book.setStatus(BookStatus.RENTED);
             allLoans.add(LoanDTO.builder()
                     .userId(selectedUser.getId()).bookId(book.getId()).bookTitle(book.getTitle())
                     .dueDate(LocalDate.now().plusDays(14)).loanDate(LocalDate.now()).overduePay(0L).build());
@@ -93,7 +91,7 @@ public class UserManagementController {
         search.setPromptText("Szukaj po tytule, autorze lub ISBN...");
         search.getStyleClass().add("text-field");
         search.setPrefHeight(35);
-        FilteredList<BookDTO> available = new FilteredList<>(InventoryController.masterInventory, b -> "AVAILABLE".equals(b.getStatus()));
+        FilteredList<BookDTO> available = new FilteredList<>(masterInventory, b -> "AVAILABLE".equals(b.getStatus()));
         search.textProperty().addListener((obs, old, val) -> {
             String f = val.toLowerCase().trim();
             available.setPredicate(b -> "AVAILABLE".equals(b.getStatus()) && (f.isEmpty() ||
@@ -108,9 +106,9 @@ public class UserManagementController {
         LoanDTO loan = userLoansTable.getSelectionModel().getSelectedItem();
         if (loan == null) return;
         loan.setReturnDate(LocalDate.now());
-        InventoryController.masterInventory.stream()
+        masterInventory.stream()
                 .filter(b -> b.getId().equals(loan.getBookId()))
-                .findFirst().ifPresent(b -> b.setStatus("AVAILABLE"));
+                .findFirst().ifPresent(b -> b.setStatus(BookStatus.AVAILABLE));
 
         showLoansForUser(loan.getUserId());
         showInfo("Zwrócono książkę.");
@@ -161,7 +159,7 @@ public class UserManagementController {
                 new UserDTO(1L, "Jan", "Jan", "Kowalski","jan@wp.pl", UserRole.USER),
                 new UserDTO(2L, "Anna", "Anna", "Nowak","ania@gmail.com", UserRole.ADMIN)
         );
-        InventoryController.masterInventory.add(new BookDTO(105L, "Czysty Kod", "Robert C. Martin", "9788328", "Edukacja", "AVAILABLE", "Podręcznik programowania", 2008));
+        masterInventory.add(new BookDTO(105L, "Czysty Kod", "Robert C. Martin", "9788328", "Edukacja", BookStatus.AVAILABLE, "Podręcznik programowania", 2008));
         allLoans.add(LoanDTO.builder().userId(1L).bookId(101L).bookTitle("Wiedźmin").dueDate(LocalDate.now().plusDays(5)).overduePay(0L).build());
     }
 }

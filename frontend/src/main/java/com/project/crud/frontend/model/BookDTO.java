@@ -15,7 +15,7 @@ public class BookDTO {
     private String author;
     private String isbn;
     private String category;
-    private String status;
+    private BookStatus status;
     private String description;
     private Integer releaseYear;
 }

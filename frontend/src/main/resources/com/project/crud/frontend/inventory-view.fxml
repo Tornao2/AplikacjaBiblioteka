@@ -29,17 +29,19 @@
                     GridPane.columnIndex="2" GridPane.rowSpan="4" />
         </GridPane>
     </VBox>
+    <HBox styleClass="stats-box">
+        <TextField fx:id="filterField" promptText="Filtruj listę inwentarza..." HBox.hgrow="ALWAYS" />
+    </HBox>
     <TableView fx:id="inventoryTable" VBox.vgrow="ALWAYS">
         <columns>
-            <TableColumn fx:id="colId" text="ID" prefWidth="45"/>
-            <TableColumn fx:id="colTitle" text="Tytuł" prefWidth="110"/>
+            <TableColumn fx:id="colTitle" text="Tytuł" prefWidth="135"/>
             <TableColumn fx:id="colAuthor" text="Autor" prefWidth="120"/>
-            <TableColumn fx:id="colIsbn" text="ISBN"/>
-            <TableColumn fx:id="colCategory" text="Kategoria" prefWidth="100"/>
-            <TableColumn fx:id="colYear" text="Rok" prefWidth="55" />
+            <TableColumn fx:id="colIsbn" text="ISBN" prefWidth="105"/>
+            <TableColumn fx:id="colCategory" text="Kategoria" prefWidth="80"/>
+            <TableColumn fx:id="colYear" text="Rok" prefWidth="50" />
             <TableColumn fx:id="colStatus" text="Status" prefWidth="90"/>
-            <TableColumn fx:id="colDescription" text="Opis" prefWidth="205"/>
-            <TableColumn fx:id="colActions" text="Akcje" prefWidth="160"/>
+            <TableColumn fx:id="colDescription" text="Opis" prefWidth="220"/>
+            <TableColumn fx:id="colActions" text="Akcje" prefWidth="150"/>
         </columns>
     </TableView>
 </VBox>

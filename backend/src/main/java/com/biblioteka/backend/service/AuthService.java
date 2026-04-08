@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -20,7 +23,9 @@ public class AuthService {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("401:Nieprawidłowe hasło");
         }
-        String token = jwtService.generateToken(user.getUsername());
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("role", user.getRole().name());
+        String token = jwtService.generateToken(extraClaims, user.getUsername());
         return AuthResponse.builder()
                 .token(token)
                 .username(user.getUsername())
