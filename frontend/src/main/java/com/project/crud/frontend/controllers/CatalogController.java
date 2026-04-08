@@ -77,9 +77,7 @@ public class CatalogController {
                     }
                 }))
                 .exceptionally(ex -> {
-                    Platform.runLater(() -> {
-                        MainController.setLoading(false);
-                    });
+                    Platform.runLater(() -> MainController.setLoading(false));
                     return null;
                 });
     }

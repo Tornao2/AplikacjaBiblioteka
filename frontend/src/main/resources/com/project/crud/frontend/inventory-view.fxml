@@ -37,7 +37,7 @@
             <TableColumn fx:id="colTitle" text="Tytuł" prefWidth="135"/>
             <TableColumn fx:id="colAuthor" text="Autor" prefWidth="120"/>
             <TableColumn fx:id="colIsbn" text="ISBN" prefWidth="105"/>
-            <TableColumn fx:id="colCategory" text="Kategoria" prefWidth="80"/>
+            <TableColumn fx:id="colCategory" text="Kategoria"/>
             <TableColumn fx:id="colYear" text="Rok" prefWidth="50" />
             <TableColumn fx:id="colStatus" text="Status" prefWidth="90"/>
             <TableColumn fx:id="colDescription" text="Opis" prefWidth="220"/>

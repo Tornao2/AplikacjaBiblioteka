@@ -20,7 +20,7 @@ public class BookDTO {
     @Pattern(regexp = "^[\\p{L} .'-]+$", message = "Imie lub nazwisko autora zawiera niedozwolone znaki")
     private String author;
     @NotBlank(message = "Numer ISBN jest wymagany")
-    @Pattern(regexp = "^(97(8|9))?\\d{9}(\\d|X)$", message = "Nieprawidłowy format ISBN ")
+    @Pattern(regexp = "^(97([89]))?\\d{9}(\\d|X)$", message = "Nieprawidłowy format ISBN ")
     private String isbn;
     @NotBlank(message = "Kategoria musi zostać wybrana")
     private String category;

@@ -3,7 +3,6 @@ package com.project.crud.frontend.controllers;
 import com.project.crud.frontend.ApiClient;
 import com.project.crud.frontend.model.BookDTO;
 import com.project.crud.frontend.model.BookStatus;
-import com.project.crud.frontend.model.FinanceType;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -12,7 +11,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -60,24 +58,22 @@ public class InventoryController {
 
     private void setupSearch() {
         FilteredList<BookDTO> filteredData = new FilteredList<>(masterInventory, p -> true);
-        filterField.textProperty().addListener((observable, oldValue, newValue) -> {
-            filteredData.setPredicate(book -> {
-                if (newValue == null || newValue.isEmpty()) {
-                    return true;
-                }
-                String lowerCaseFilter = newValue.toLowerCase().trim();
-                if (book.getTitle().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (book.getAuthor().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (book.getIsbn().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (book.getCategory().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                }
-                return false;
-            });
-        });
+        filterField.textProperty().addListener((observable, oldValue, newValue) -> filteredData.setPredicate(book -> {
+            if (newValue == null || newValue.isEmpty()) {
+                return true;
+            }
+            String lowerCaseFilter = newValue.toLowerCase().trim();
+            if (book.getTitle().toLowerCase().contains(lowerCaseFilter)) {
+                return true;
+            } else if (book.getAuthor().toLowerCase().contains(lowerCaseFilter)) {
+                return true;
+            } else if (book.getIsbn().contains(lowerCaseFilter)) {
+                return true;
+            } else if (book.getCategory().toLowerCase().contains(lowerCaseFilter)) {
+                return true;
+            }
+            return false;
+        }));
         SortedList<BookDTO> sortedData = new SortedList<>(filteredData);
         sortedData.comparatorProperty().bind(inventoryTable.comparatorProperty());
         inventoryTable.setItems(sortedData);
@@ -270,7 +266,7 @@ public class InventoryController {
         Stream.of(titleField, authorField, isbnField, yearField, descriptionArea).forEach(TextInputControl::clear);
         categoryCombo.getSelectionModel().select(-1);
         categoryCombo.setValue(null);
-        categoryCombo.setButtonCell(new ListCell<String>() {
+        categoryCombo.setButtonCell(new ListCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);

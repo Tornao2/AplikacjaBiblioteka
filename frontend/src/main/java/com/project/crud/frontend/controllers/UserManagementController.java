@@ -91,10 +91,10 @@ public class UserManagementController {
         search.setPromptText("Szukaj po tytule, autorze lub ISBN...");
         search.getStyleClass().add("text-field");
         search.setPrefHeight(35);
-        FilteredList<BookDTO> available = new FilteredList<>(masterInventory, b -> "AVAILABLE".equals(b.getStatus()));
+        FilteredList<BookDTO> available = new FilteredList<>(masterInventory, b -> BookStatus.AVAILABLE.equals(b.getStatus()));
         search.textProperty().addListener((obs, old, val) -> {
             String f = val.toLowerCase().trim();
-            available.setPredicate(b -> "AVAILABLE".equals(b.getStatus()) && (f.isEmpty() ||
+            available.setPredicate(b -> BookStatus.AVAILABLE.equals(b.getStatus()) && (f.isEmpty() ||
                     Stream.of(b.getTitle(), b.getAuthor(), b.getIsbn()).anyMatch(s -> s.toLowerCase().contains(f))));
         });
         table.setItems(available);

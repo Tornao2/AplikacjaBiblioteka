@@ -17,10 +17,10 @@ VALUES
 ('Marsjanin', 'Andy Weir', '9788328701045', 'Sci-Fi', 2011, 'AVAILABLE',
  'Historia astronauty, który musi przetrwać samotnie na Marsie.'),
 
-('Steve Jobs', 'Walter Isaacson', '9788308048122', 'Biografia', 2011, 'PROLONGED',
+('Steve Jobs', 'Walter Isaacson', '9788308048122', 'Biografia', 2011, 'RENTED',
  'Oficjalna biografia założyciela Apple.'),
 
-('Sapiens', 'Yuval Noah Harari', '9788308064139', 'Nauka', 2014, 'PROLONGED',
+('Sapiens', 'Yuval Noah Harari', '9788308064139', 'Nauka', 2014, 'RENTED',
  'Opowieść o historii gatunku ludzkiego.'),
 
 ('Hobbit', 'J.R.R. Tolkien', '9788324403752', 'Fantasy', 1937, 'AVAILABLE',
