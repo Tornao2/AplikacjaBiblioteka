@@ -12,20 +12,4 @@ Dla bibliotekarza: biblio biblio
 
 Dla czytelnika: user user
 
-SKOŃCZONE EKRANY:
-
-MainController
-
-LoginController
-
-AdminSettingsController
-
-AdminUsersController
-
-ConnectionErrorController
-
-InventoryController
-
-CatalogController
-
 DANE SIĘ RESETUJĄ POMIĘDZY KOELJNYMI WŁĄCZENIAMI BACKENDU

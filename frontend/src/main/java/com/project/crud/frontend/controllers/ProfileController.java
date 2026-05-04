@@ -1,12 +1,15 @@
 package com.project.crud.frontend.controllers;
 
+import com.project.crud.frontend.ApiClient;
 import com.project.crud.frontend.auth.UserSession;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public class ProfileController {
@@ -14,8 +17,11 @@ public class ProfileController {
     @FXML private PasswordField currentPasswordField, newPasswordField, confirmPasswordField;
     @FXML private Button aktButton, chanButton;
 
+    private ApiClient apiClient;
+
     @FXML
     public void initialize() {
+        this.apiClient = new ApiClient(emailField);
         String currentEmail = UserSession.getInstance().getToken().getEmail();
         if (currentEmail != null) emailField.setText(currentEmail);
         aktButton.disableProperty().bind(emailField.textProperty().isEmpty()
@@ -44,8 +50,16 @@ public class ProfileController {
     private void handleUpdateEmail() {
         String mail = emailField.getText().trim();
         if (mail.length() >= 5 && mail.contains("@")) {
-            UserSession.getInstance().getToken().setEmail(mail.toLowerCase());
-            showAlert("Sukces", "Adres email został zaktualizowany.", Alert.AlertType.INFORMATION);
+            Map<String, String> body = Map.of("email", mail.toLowerCase());
+            apiClient.send("/users/me/email", "PUT", body, Void.class)
+                    .thenAccept(v -> Platform.runLater(() -> {
+                        UserSession.getInstance().getToken().setEmail(mail.toLowerCase());
+                        showAlert("Sukces", "Adres email został zaktualizowany.", Alert.AlertType.INFORMATION);
+                    }))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> showAlert("Błąd", ApiClient.getErrorMessage(ex), Alert.AlertType.ERROR));
+                        return null;
+                    });
         } else {
             showAlert("Błąd", "Podaj poprawny adres email (min. 5 znaków).", Alert.AlertType.ERROR);
         }
@@ -54,13 +68,25 @@ public class ProfileController {
     @FXML
     private void handleUpdatePassword() {
         String next = newPasswordField.getText();
+        String current = currentPasswordField.getText();
         if (!next.equals(confirmPasswordField.getText())) {
             showAlert("Błąd", "Nowe hasła nie są identyczne.", Alert.AlertType.ERROR);
         } else if (next.length() < 5) {
             showAlert("Błąd", "Hasło musi mieć przynajmniej 5 znaków.", Alert.AlertType.ERROR);
         } else {
-            showAlert("Sukces", "Hasło zostało zmienione.", Alert.AlertType.INFORMATION);
-            handleLogout();
+            Map<String, String> body = Map.of(
+                    "currentPassword", current,
+                    "newPassword", next
+            );
+            apiClient.send("/users/me/password", "PUT", body, Void.class)
+                    .thenAccept(v -> Platform.runLater(() -> {
+                        showAlert("Sukces", "Hasło zostało zmienione. Zaloguj się ponownie.", Alert.AlertType.INFORMATION);
+                        handleLogout();
+                    }))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> showAlert("Błąd", ApiClient.getErrorMessage(ex), Alert.AlertType.ERROR));
+                        return null;
+                    });
         }
     }
 
@@ -69,9 +95,16 @@ public class ProfileController {
         Alert a = new Alert(Alert.AlertType.CONFIRMATION, "Ta operacja jest nieodwracalna. Czy na pewno usunąć konto?");
         styleAlert(a, "Usuwanie konta");
         Button ok = (Button) a.getDialogPane().lookupButton(ButtonType.OK);
-        ok.setText("Usuń bezpowrotnie");
-        ok.getStyleClass().add("button-primary");
-        a.showAndWait().filter(r -> r == ButtonType.OK).ifPresent(r -> handleLogout());
+        if (ok != null) {
+            ok.setText("Usuń bezpowrotnie");
+            ok.getStyleClass().add("button-primary");
+        }
+        a.showAndWait().filter(r -> r == ButtonType.OK).ifPresent(r -> apiClient.send("/users/me", "DELETE", null, Void.class)
+                .thenAccept(v -> Platform.runLater(this::handleLogout))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showAlert("Błąd", ApiClient.getErrorMessage(ex), Alert.AlertType.ERROR));
+                    return null;
+                }));
     }
 
     private void showAlert(String title, String content, Alert.AlertType type) {
@@ -86,6 +119,13 @@ public class ProfileController {
         DialogPane p = a.getDialogPane();
         p.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
         p.getStyleClass().add("root-container");
+        p.setMinWidth(400);
+        for (javafx.scene.Node node : p.getChildrenUnmodifiable()) {
+            if (node instanceof Label label) {
+                label.setWrapText(true);
+                label.setTextOverrun(javafx.scene.control.OverrunStyle.CLIP);
+            }
+        }
         Button ok = (Button) p.lookupButton(ButtonType.OK);
         if (ok != null) { ok.getStyleClass().add("button-primary"); ok.setText("Rozumiem"); }
         Button can = (Button) p.lookupButton(ButtonType.CANCEL);

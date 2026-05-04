@@ -1,7 +1,10 @@
 package com.project.crud.frontend.controllers;
 
+import com.project.crud.frontend.ApiClient;
 import com.project.crud.frontend.model.UserDTO;
+import com.project.crud.frontend.model.UserRegistrationRequest;
 import com.project.crud.frontend.model.UserRole;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -14,8 +17,10 @@ public class AddUserController {
     @FXML private Button registerBtn, clearBtn;
 
     private List<TextInputControl> allFields;
+    private ApiClient apiClient;
 
     public void initialize() {
+        this.apiClient = new ApiClient(registerBtn);
         allFields = Arrays.asList(firstNameField, lastNameField, emailField, usernameField, passwordField, confirmPasswordField);
         var properties = allFields.stream().map(TextInputControl::textProperty).toArray(javafx.beans.value.ObservableValue[]::new);
         registerBtn.disableProperty().bind(Bindings.createBooleanBinding(
@@ -30,15 +35,27 @@ public class AddUserController {
         emailField.setText(emailField.getText().toLowerCase());
         usernameField.setText(usernameField.getText().replaceAll("\\s+", ""));
         if (validate()) {
-            UserDTO newUser = UserDTO.builder()
+            UserRegistrationRequest request = UserRegistrationRequest.builder()
                     .firstName(firstNameField.getText())
                     .lastName(lastNameField.getText())
                     .email(emailField.getText())
                     .username(usernameField.getText())
+                    .password(passwordField.getText())
                     .role(UserRole.Czytelnik)
                     .build();
-            showInfo("Czytelnik " + newUser.getFirstName() + " " + newUser.getLastName() + " dodany.", Alert.AlertType.INFORMATION);
-            handleClear();
+            apiClient.send("/users", "POST", request, UserDTO.class)
+                    .thenAccept(registeredUser -> {
+                        if (registeredUser != null) {
+                            Platform.runLater(() -> {
+                                showInfo("Czytelnik " + registeredUser.getFirstName() + " " + registeredUser.getLastName() + " dodany pomyślnie.", Alert.AlertType.INFORMATION);
+                                handleClear();
+                            });
+                        }
+                    })
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> showInfo(ApiClient.getErrorMessage(ex), Alert.AlertType.ERROR));
+                        return null;
+                    });
         }
     }
 

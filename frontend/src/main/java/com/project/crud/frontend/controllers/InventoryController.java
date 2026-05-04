@@ -69,10 +69,7 @@ public class InventoryController {
                 return true;
             } else if (book.getIsbn().contains(lowerCaseFilter)) {
                 return true;
-            } else if (book.getCategory().toLowerCase().contains(lowerCaseFilter)) {
-                return true;
-            }
-            return false;
+            } else return book.getCategory().toLowerCase().contains(lowerCaseFilter);
         }));
         SortedList<BookDTO> sortedData = new SortedList<>(filteredData);
         sortedData.comparatorProperty().bind(inventoryTable.comparatorProperty());

@@ -2,6 +2,8 @@ package com.project.crud.frontend.controllers;
 
 import com.project.crud.frontend.model.FinanceDTO;
 import com.project.crud.frontend.model.FinanceType;
+import com.project.crud.frontend.ApiClient;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -14,7 +16,11 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.text.Text;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 public class AdminFinanceController {
     @FXML private ComboBox<FinanceType> typeComboBox;
@@ -26,14 +32,16 @@ public class AdminFinanceController {
     @FXML private TableColumn<FinanceDTO, LocalDate> colDate;
     @FXML private TableColumn<FinanceDTO, FinanceType> colType;
     @FXML private TableColumn<FinanceDTO, String> colDesc;
-    @FXML private TableColumn<FinanceDTO, Double> colAmount;
+    @FXML private TableColumn<FinanceDTO, BigDecimal> colAmount;
     @FXML private TableColumn<FinanceDTO, Void> colActions;
 
     private final ObservableList<FinanceDTO> masterData = FXCollections.observableArrayList();
     private FilteredList<FinanceDTO> filteredData;
+    private ApiClient apiClient;
 
     @FXML
     public void initialize() {
+        this.apiClient = new ApiClient(typeComboBox);
         typeComboBox.setItems(FXCollections.observableArrayList(FinanceType.values()));
         setupTable();
         setupFiltering();
@@ -45,6 +53,22 @@ public class AdminFinanceController {
                         .or(amountField.textProperty().isEmpty())
                         .or(descriptionArea.textProperty().isEmpty())
         );
+        loadFinancesFromApi();
+    }
+
+    private void loadFinancesFromApi() {
+        apiClient.send("/finance", "GET", null, FinanceDTO[].class)
+                .thenAccept(finances -> Platform.runLater(() -> {
+                    if (finances != null) {
+                        masterData.clear();
+                        masterData.addAll(List.of(finances));
+                        updateFilterAndStats();
+                    }
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showError("Nie udało się pobrać finansów: " + ex.getMessage()));
+                    return null;
+                });
     }
 
     private void setupTable() {
@@ -52,6 +76,15 @@ public class AdminFinanceController {
         colType.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getType()));
         colAmount.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getAmount()));
         colDesc.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getDescription()));
+        colDesc.setCellFactory(tc -> new TableCell<>() {
+            private final Text t = new Text();
+            { t.wrappingWidthProperty().bind(tc.widthProperty().subtract(20)); t.getStyleClass().add("text"); }
+            @Override protected void updateItem(String i, boolean e) {
+                super.updateItem(i, e);
+                if (e || i == null) setGraphic(null);
+                else { t.setText(i); t.fillProperty().bind(textFillProperty()); setGraphic(t); }
+            }
+        });
         setupActions();
         financeTable.setRowFactory(tv -> new TableRow<>() {
             @Override
@@ -71,12 +104,21 @@ public class AdminFinanceController {
 
     private void setupFiltering() {
         filteredData = new FilteredList<>(masterData, p -> true);
-        filterDateFrom.valueProperty().addListener(o -> updateFilterAndStats());
-        filterDateTo.valueProperty().addListener(o -> updateFilterAndStats());
+        filterDateFrom.valueProperty().addListener((obs, oldVal, newVal) -> updateFilterAndStats());
+        filterDateTo.valueProperty().addListener((obs, oldVal, newVal) -> updateFilterAndStats());
+        filterDateFrom.getEditor().textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == null || newVal.trim().isEmpty()) {
+                filterDateFrom.setValue(null);
+            }
+        });
+        filterDateTo.getEditor().textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal == null || newVal.trim().isEmpty()) {
+                filterDateTo.setValue(null);
+            }
+        });
         SortedList<FinanceDTO> sortedData = new SortedList<>(filteredData);
         sortedData.comparatorProperty().bind(financeTable.comparatorProperty());
         financeTable.setItems(sortedData);
-        updateFilterAndStats();
     }
 
     private void updateFilterAndStats() {
@@ -84,12 +126,16 @@ public class AdminFinanceController {
             LocalDate from = filterDateFrom.getValue(), to = filterDateTo.getValue(), date = item.getDate();
             return (from == null || !date.isBefore(from)) && (to == null || !date.isAfter(to));
         });
-        double income = filteredData.stream()
+        BigDecimal income = filteredData.stream()
                 .filter(i -> FinanceType.INCOME.equals(i.getType()))
-                .mapToDouble(FinanceDTO::getAmount).sum();
-        double expense = filteredData.stream()
+                .map(FinanceDTO::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal expense = filteredData.stream()
                 .filter(i -> FinanceType.EXPENSE.equals(i.getType()))
-                .mapToDouble(FinanceDTO::getAmount).sum();
+                .map(FinanceDTO::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         countLabel.setText("Operacji: " + filteredData.size());
         incomeLabel.setText(String.format("Dochody: %.2f PLN", income));
         expenseLabel.setText(String.format("Straty: %.2f PLN", expense));
@@ -115,15 +161,22 @@ public class AdminFinanceController {
 
     @FXML
     private void handleSave() {
-        masterData.add(FinanceDTO.builder()
-                .id(System.currentTimeMillis())
+        FinanceDTO newEntry = FinanceDTO.builder()
                 .date(LocalDate.now())
                 .type(typeComboBox.getValue())
-                .amount(Double.parseDouble(amountField.getText()))
+                .amount(new BigDecimal(amountField.getText()))
                 .description(descriptionArea.getText())
-                .build());
-        updateFilterAndStats();
-        clearFields();
+                .build();
+        apiClient.send("/finance", "POST", newEntry, FinanceDTO.class)
+                .thenAccept(saved -> Platform.runLater(() -> {
+                    masterData.add(saved);
+                    updateFilterAndStats();
+                    clearFields();
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showError("Nie udało się zapisać transakcji: " + ex.getMessage()));
+                    return null;
+                });
     }
 
     private void showEditDialog(FinanceDTO f) {
@@ -136,7 +189,7 @@ public class AdminFinanceController {
         grid.setHgap(10); grid.setVgap(10); grid.setPadding(new Insets(20));
         ComboBox<FinanceType> eType = new ComboBox<>(FXCollections.observableArrayList(FinanceType.values()));
         eType.setValue(f.getType());
-        TextField eAmount = new TextField(String.valueOf(f.getAmount()));
+        TextField eAmount = new TextField(f.getAmount().toString());
         TextField eDesc = new TextField(f.getDescription());
         eAmount.textProperty().addListener((obs, old, val) -> {
             if (!val.matches("\\d*(\\.\\d*)?")) eAmount.setText(old);
@@ -151,24 +204,42 @@ public class AdminFinanceController {
                         .or(eAmount.textProperty().isEmpty())
                         .or(eDesc.textProperty().isEmpty())
         );
-        dialog.setResultConverter(b -> b == saveType ? updateFinance(f, eType, eAmount, eDesc) : null);
-        dialog.showAndWait().ifPresent(r -> {
-            financeTable.refresh();
-            updateFilterAndStats();
+        dialog.setResultConverter(b -> {
+            if (b == saveType) {
+                f.setType(eType.getValue());
+                f.setAmount(new BigDecimal(eAmount.getText()));
+                f.setDescription(eDesc.getText());
+                return f;
+            }
+            return null;
         });
-    }
-
-    private FinanceDTO updateFinance(FinanceDTO f, ComboBox<FinanceType> t, TextField a, TextField d) {
-        f.setType(t.getValue());
-        f.setAmount(Double.parseDouble(a.getText()));
-        f.setDescription(d.getText());
-        return f;
+        dialog.showAndWait().ifPresent(r -> apiClient.send("/finance/" + r.getId(), "PUT", r, FinanceDTO.class)
+                .thenAccept(updated -> Platform.runLater(() -> {
+                    financeTable.refresh();
+                    updateFilterAndStats();
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showError("Nie udało się zaktualizować wpisu: " + ex.getMessage()));
+                    return null;
+                }));
     }
 
     private void handleDelete(FinanceDTO f) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Usunąć wpis: " + f.getDescription() + "?");
         styleControl(alert, "Tak, usuń");
-        alert.showAndWait().ifPresent(r -> { if (r == ButtonType.OK) { masterData.remove(f); updateFilterAndStats(); }});
+        alert.showAndWait().ifPresent(r -> {
+            if (r == ButtonType.OK) {
+                apiClient.send("/finance/" + f.getId(), "DELETE", null, Void.class)
+                        .thenAccept(v -> Platform.runLater(() -> {
+                            masterData.remove(f);
+                            updateFilterAndStats();
+                        }))
+                        .exceptionally(ex -> {
+                            Platform.runLater(() -> showError("Nie udało się usunąć wpisu: " + ex.getMessage()));
+                            return null;
+                        });
+            }
+        });
     }
 
     private void styleControl(Dialog<?> d, String okT) {
@@ -182,22 +253,19 @@ public class AdminFinanceController {
         if (can != null) { can.getStyleClass().add("button-outline-danger"); can.setText("Anuluj"); }
     }
 
+    private void showError(String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Błąd");
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
     @FXML private void handleCancel() { clearFields(); }
 
     private void clearFields() {
         typeComboBox.getSelectionModel().select(-1);
         typeComboBox.setValue(null);
-        typeComboBox.setButtonCell(new ListCell<FinanceType>() {
-            @Override
-            protected void updateItem(FinanceType item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(typeComboBox.getPromptText());
-                } else {
-                    setText(item.toString());
-                }
-            }
-        });
         amountField.clear();
         descriptionArea.clear();
         financeTable.getSelectionModel().clearSelection();

@@ -1,6 +1,8 @@
 package com.project.crud.frontend.controllers;
 
+import com.project.crud.frontend.ApiClient;
 import com.project.crud.frontend.model.SystemLogDTO;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -13,6 +15,7 @@ import javafx.scene.text.Text;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.stream.Stream;
 
 public class AdminLogsController {
@@ -25,13 +28,15 @@ public class AdminLogsController {
 
     private final ObservableList<SystemLogDTO> masterData = FXCollections.observableArrayList();
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private ApiClient apiClient;
 
     @FXML
     public void initialize() {
+        this.apiClient = new ApiClient(logTable);
         setupColumns();
         severityFilter.setItems(FXCollections.observableArrayList("WSZYSTKIE", "INFO", "WARNING", "CRITICAL"));
         severityFilter.setValue("WSZYSTKIE");
-        loadMockLogs();
+        loadLogsFromApi();
         setupLiveFiltering();
     }
 
@@ -71,6 +76,7 @@ public class AdminLogsController {
     }
 
     private boolean applyFilters(SystemLogDTO log) {
+        loadLogsFromApi();
         String s = logSearchField.getText() == null ? "" : logSearchField.getText().toLowerCase().trim();
         boolean txt = s.isEmpty() || Stream.of(log.getUser(), log.getAction(), log.getDetails())
                 .anyMatch(f -> f != null && f.toLowerCase().contains(s));
@@ -81,12 +87,15 @@ public class AdminLogsController {
         return txt && mSev && mDate;
     }
 
-    private void loadMockLogs() {
-        masterData.addAll(
-                new SystemLogDTO(LocalDateTime.now(), "admin", "LOGIN", "Pomyślne logowanie", "INFO"),
-                new SystemLogDTO(LocalDateTime.now().minusMinutes(5), "marta_b", "BOOK_ADD", "Dodano: Solaris", "INFO"),
-                new SystemLogDTO(LocalDateTime.now().minusHours(2), "system", "DB_ERROR", "Błąd połączenia", "CRITICAL"),
-                new SystemLogDTO(LocalDateTime.now().minusDays(1), "jan_kowalski", "AUTH_FAIL", "Złe hasło", "WARNING")
-        );
+    private void loadLogsFromApi() {
+        apiClient.send("/logs", "GET", null, SystemLogDTO[].class)
+                .thenAccept(logs -> {
+                    if (logs != null) {
+                        Platform.runLater(() -> {
+                            masterData.clear();
+                            masterData.addAll(Arrays.asList(logs));
+                        });
+                    }
+                });
     }
 }

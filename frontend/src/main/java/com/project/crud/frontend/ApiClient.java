@@ -74,7 +74,7 @@ public class ApiClient {
             if (viewNode.getScene() == null) return;
             Parent root = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/error-connection-view.fxml")).load();
             viewNode.getScene().setRoot(root);
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception ignored) {  }
     }
 
     public static String getErrorMessage(Throwable ex) {

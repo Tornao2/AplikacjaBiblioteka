@@ -56,7 +56,7 @@ public class MainController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/" + fxml));
             contentArea.getChildren().setAll((Parent) loader.load());
-        } catch (IOException e) { e.printStackTrace(); }
+        } catch (IOException ignored) {  }
     }
 
     @FXML private void handleLogout() throws IOException {

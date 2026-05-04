@@ -1,6 +1,8 @@
 package com.project.crud.frontend.controllers;
 
+import com.project.crud.frontend.ApiClient;
 import com.project.crud.frontend.model.*;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -11,6 +13,8 @@ import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public class UserManagementController {
@@ -26,11 +30,12 @@ public class UserManagementController {
     private final ObservableList<UserDTO> allUsers = FXCollections.observableArrayList();
     private final ObservableList<LoanDTO> allLoans = FXCollections.observableArrayList();
     private final ObservableList<BookDTO> masterInventory = FXCollections.observableArrayList();
+    private ApiClient apiClient;
 
     @FXML
     public void initialize() {
+        this.apiClient = new ApiClient(userTable);
         setupTableColumns();
-        loadMockData();
         setupUserSearch();
         userTable.getSelectionModel().selectedItemProperty().addListener((obs, old, newUser) -> {
             if (newUser != null) showLoansForUser(newUser.getId());
@@ -40,6 +45,7 @@ public class UserManagementController {
         openPickerBtn.disableProperty().bind(userTable.getSelectionModel().selectedItemProperty().isNull());
         userTable.setPlaceholder(new Label("Brak użytkowników w systemie."));
         userLoansTable.setPlaceholder(new Label("Brak aktywnych wypożyczeń."));
+        loadInitialDataFromApi();
     }
 
     private void setupTableColumns() {
@@ -48,13 +54,59 @@ public class UserManagementController {
         colBookTitle.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getBookTitle()));
         colDueDate.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getDueDate()));
         colStatus.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getStatus()));
-        payDue.setCellValueFactory(d -> new SimpleStringProperty());
+        payDue.setCellValueFactory(d -> new SimpleStringProperty(
+                d.getValue().getOverduePay() != null ? d.getValue().getOverduePay() + " PLN" : "0 PLN"));
         Stream.of(userTable, userLoansTable).forEach(t -> t.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY));
+    }
+
+    private void loadInitialDataFromApi() {
+        apiClient.send("/users", "GET", null, UserDTO[].class)
+                .thenAccept(users -> Platform.runLater(() -> {
+                    if (users != null) {
+                        allUsers.clear();
+                        allUsers.addAll(List.of(users));
+                    }
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showError("Nie udało się pobrać użytkowników: " + ApiClient.getErrorMessage(ex)));
+                    return null;
+                });
+        apiClient.send("/books", "GET", null, BookDTO[].class)
+                .thenAccept(books -> Platform.runLater(() -> {
+                    if (books != null) {
+                        masterInventory.clear();
+                        masterInventory.addAll(List.of(books));
+                    }
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showError("Nie udało się pobrać książek: " + ApiClient.getErrorMessage(ex)));
+                    return null;
+                });
+        loadLoansFromApi();
+    }
+
+    private void loadLoansFromApi() {
+        apiClient.send("/loans/admin", "GET", null, LoanDTO[].class)
+                .thenAccept(loans -> Platform.runLater(() -> {
+                    if (loans != null) {
+                        allLoans.clear();
+                        allLoans.addAll(List.of(loans));
+                        UserDTO selectedUser = userTable.getSelectionModel().getSelectedItem();
+                        if (selectedUser != null) {
+                            showLoansForUser(selectedUser.getId());
+                        }
+                    }
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showError("Nie udało się pobrać wypożyczeń: " + ApiClient.getErrorMessage(ex)));
+                    return null;
+                });
     }
 
     @FXML
     private void handleOpenBookPicker() {
         UserDTO selectedUser = userTable.getSelectionModel().getSelectedItem();
+        if (selectedUser == null) return;
         Dialog<BookDTO> dialog = new Dialog<>();
         styleDialog(dialog, "Wybierz książkę dla: " + selectedUser.getFullName());
         TableView<BookDTO> table = createPickerTable();
@@ -66,12 +118,18 @@ public class UserManagementController {
                 .disableProperty().bind(table.getSelectionModel().selectedItemProperty().isNull());
         dialog.setResultConverter(btn -> btn.getButtonData().isDefaultButton() ? table.getSelectionModel().getSelectedItem() : null);
         dialog.showAndWait().ifPresent(book -> {
-            book.setStatus(BookStatus.Wypozyczona);
-            allLoans.add(LoanDTO.builder()
-                    .userId(selectedUser.getId()).bookId(book.getId()).bookTitle(book.getTitle())
-                    .dueDate(LocalDate.now().plusDays(14)).loanDate(LocalDate.now()).overduePay(0L).build());
-            showLoansForUser(selectedUser.getId());
-            showInfo("Pomyślnie wypożyczono książkę: " + book.getTitle());
+            Map<String, Long> payload = Map.of("userId", selectedUser.getId(), "bookId", book.getId());
+            apiClient.send("/loans", "POST", payload, LoanDTO.class)
+                    .thenAccept(newLoan -> Platform.runLater(() -> {
+                        book.setStatus(BookStatus.Wypozyczona);
+                        allLoans.add(newLoan);
+                        showLoansForUser(selectedUser.getId());
+                        showInfo("Pomyślnie wypożyczono książkę: " + book.getTitle());
+                    }))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> showError("Nie można wypożyczyć: " + ApiClient.getErrorMessage(ex)));
+                        return null;
+                    });
         });
     }
 
@@ -105,18 +163,24 @@ public class UserManagementController {
     private void handleReturnAction() {
         LoanDTO loan = userLoansTable.getSelectionModel().getSelectedItem();
         if (loan == null) return;
-        loan.setReturnDate(LocalDate.now());
-        masterInventory.stream()
-                .filter(b -> b.getId().equals(loan.getBookId()))
-                .findFirst().ifPresent(b -> b.setStatus(BookStatus.Dostepna));
-
-        showLoansForUser(loan.getUserId());
-        showInfo("Zwrócono książkę.");
+        apiClient.send("/loans/" + loan.getId() + "/return", "POST", null, Void.class)
+                .thenAccept(v -> Platform.runLater(() -> {
+                    loan.setReturnDate(LocalDate.now());
+                    masterInventory.stream()
+                            .filter(b -> b.getId().equals(loan.getBookId()))
+                            .findFirst().ifPresent(b -> b.setStatus(BookStatus.Dostepna));
+                    loadLoansFromApi();
+                    showInfo("Zwrócono książkę.");
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showError("Nie udało się zwrócić książki: " + ApiClient.getErrorMessage(ex)));
+                    return null;
+                });
     }
 
     private void showLoansForUser(Long userId) {
         userLoansTable.setItems(new FilteredList<>(allLoans,
-                loan -> loan.getUserId().equals(userId) && "AKTYWNE".equals(loan.getStatus())));
+                loan -> loan.getUserId().equals(userId) && loan.getReturnDate() == null));
     }
 
     private void setupUserSearch() {
@@ -137,29 +201,37 @@ public class UserManagementController {
         p.setPrefSize(700, 500);
         p.getButtonTypes().setAll(new ButtonType("Wypożycz", ButtonBar.ButtonData.OK_DONE), ButtonType.CANCEL);
         (p.lookupButton(p.getButtonTypes().get(0))).getStyleClass().add("button-primary");
-        Button can = (Button) p.lookupButton(ButtonType.CANCEL);
+        Button can = (Button) p.lookupButton(p.getButtonTypes().get(1));
         can.getStyleClass().add("button-outline-danger");
         can.setText("Anuluj");
     }
 
     private void showInfo(String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION, msg);
-        a.setTitle("Sukces");
+        styleAlert(a, "Sukces");
+        a.showAndWait();
+    }
+
+    private void showError(String msg) {
+        Alert a = new Alert(Alert.AlertType.ERROR, msg);
+        styleAlert(a, "Błąd");
+        a.showAndWait();
+    }
+
+    private void styleAlert(Alert a, String title) {
+        a.setTitle(title);
         a.setHeaderText(null);
         DialogPane p = a.getDialogPane();
         p.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
         p.getStyleClass().add("root-container");
+        p.setMinWidth(400);
+        for (javafx.scene.Node node : p.getChildrenUnmodifiable()) {
+            if (node instanceof Label label) {
+                label.setWrapText(true);
+                label.setTextOverrun(javafx.scene.control.OverrunStyle.CLIP);
+            }
+        }
         Button ok = (Button) p.lookupButton(ButtonType.OK);
         if (ok != null) { ok.getStyleClass().add("button-primary"); ok.setText("Rozumiem"); }
-        a.showAndWait();
-    }
-
-    private void loadMockData() {
-        allUsers.addAll(
-                new UserDTO(1L, "Jan", "Jan", "Kowalski","jan@wp.pl", UserRole.Czytelnik),
-                new UserDTO(2L, "Anna", "Anna", "Nowak","ania@gmail.com", UserRole.Admin)
-        );
-        masterInventory.add(new BookDTO(105L, "Czysty Kod", "Robert C. Martin", "9788328", "Edukacja", BookStatus.Dostepna, "Podręcznik programowania", 2008));
-        allLoans.add(LoanDTO.builder().userId(1L).bookId(101L).bookTitle("Wiedźmin").dueDate(LocalDate.now().plusDays(5)).overduePay(0L).build());
     }
 }

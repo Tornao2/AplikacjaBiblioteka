@@ -6,6 +6,8 @@ import com.biblioteka.backend.entity.BookStatus;
 import com.biblioteka.backend.repository.BookRepository;
 import com.biblioteka.backend.repository.LoanRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,8 +50,13 @@ public class BookService {
             book = mapToEntity(dto);
         }
         Book saved = bookRepository.save(book);
+        String username = "SYSTEM";
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            username = auth.getName();
+        }
         String action = isUpdate ? "BOOK_UPDATED" : "BOOK_ADDED";
-        logService.addLog("SYSTEM", action, "Książka: " + saved.getTitle(), "INFO");
+        logService.addLog(username, action, "Książka: " + saved.getTitle(), "INFO");
         return mapToDTO(saved);
     }
 
@@ -62,7 +69,12 @@ public class BookService {
         }
         bookRepository.findById(id).ifPresent(book -> {
             bookRepository.delete(book);
-            logService.addLog("SYSTEM", "BOOK_DELETED", "Usunięto: " + book.getTitle(), "WARNING");
+            String username = "SYSTEM";
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+                username = auth.getName();
+            }
+            logService.addLog(username, "BOOK_DELETED", "Usunięto: " + book.getTitle(), "WARNING");
         });
     }
 

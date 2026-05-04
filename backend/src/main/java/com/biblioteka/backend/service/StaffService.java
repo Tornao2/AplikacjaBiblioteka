@@ -8,6 +8,8 @@ import com.biblioteka.backend.entity.UserRole;
 import com.biblioteka.backend.repository.StaffRepository;
 import com.biblioteka.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +25,7 @@ public class StaffService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final SystemLogService logService;
-    private final PasswordEncoder passwordEncoder; // DODAJ
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public List<StaffDTO> getAllStaff() {
@@ -51,8 +53,10 @@ public class StaffService {
                 .salary(BigDecimal.valueOf(request.getSalary()))
                 .build();
         Staff savedStaff = staffRepository.save(staff);
-        logService.addLog("SYSTEM", "STAFF_CREATED",
+        String username = getCurrentUsername();
+        logService.addLog(username, "STAFF_CREATED",
                 "Dodano pracownika: " + savedUser.getFullName(), "INFO");
+
         return mapToDTO(savedStaff);
     }
 
@@ -73,7 +77,8 @@ public class StaffService {
         staff.setHireDate(request.getHireDate());
         userRepository.save(user);
         Staff updated = staffRepository.save(staff);
-        logService.addLog("SYSTEM", "STAFF_UPDATED",
+        String username = getCurrentUsername();
+        logService.addLog(username, "STAFF_UPDATED",
                 "Zaktualizowano dane: " + user.getFullName(), "INFO");
 
         return mapToDTO(updated);
@@ -89,9 +94,18 @@ public class StaffService {
             staff.setUser(null);
             userRepository.save(user);
             staffRepository.delete(staff);
-            logService.addLog("SYSTEM", "STAFF_REMOVED",
+            String username = getCurrentUsername();
+            logService.addLog(username, "STAFF_REMOVED",
                     "Zakończono zatrudnienie: " + fullName + ". Konto użytkownika aktywne.", "WARNING");
         });
+    }
+
+    private String getCurrentUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            return auth.getName();
+        }
+        return "SYSTEM";
     }
 
     private StaffDTO mapToDTO(Staff entity) {

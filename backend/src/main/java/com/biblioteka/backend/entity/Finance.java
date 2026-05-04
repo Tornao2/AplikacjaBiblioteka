@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "finances")
+@Table(name = "finance")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,7 +21,7 @@ public class Finance {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private FinanceType type;
-    @Column(precision = 12, scale = 2)
+    @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
     @Column(length = 500)
     private String description;

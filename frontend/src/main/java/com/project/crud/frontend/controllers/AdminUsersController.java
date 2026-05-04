@@ -268,8 +268,8 @@ public class AdminUsersController {
                 var loader = new FXMLLoader(getClass().getResource("/com/project/crud/frontend/login-view.fxml"));
                 stage.setScene(new Scene(loader.load(), 1200, 900));
                 stage.setTitle("Logowanie");
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (Exception ignored) {
+
             }
         });
     }

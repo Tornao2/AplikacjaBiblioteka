@@ -1,6 +1,8 @@
 package com.project.crud.frontend.controllers;
 
+import com.project.crud.frontend.ApiClient;
 import com.project.crud.frontend.model.LoanDTO;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -8,9 +10,9 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import java.time.LocalDate;
+import java.util.List;
 
 public class LoansController {
-
     @FXML private TableView<LoanDTO> loanTable;
     @FXML private TableColumn<LoanDTO, String> colLoanTitle, colStatus;
     @FXML private TableColumn<LoanDTO, LocalDate> colDueDate;
@@ -19,16 +21,18 @@ public class LoansController {
     @FXML private Label totalLoansLabel, overdueCountLabel, booksReturnedLabel;
 
     private final ObservableList<LoanDTO> loanData = FXCollections.observableArrayList();
+    private ApiClient apiClient;
 
     @FXML
     public void initialize() {
+        this.apiClient = new ApiClient(loanTable);
         colLoanTitle.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getBookTitle()));
         colDueDate.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getDueDate()));
-        payDue.setCellValueFactory(d -> new SimpleStringProperty());
+        payDue.setCellValueFactory(d -> new SimpleStringProperty(String.format("%.2f zł", d.getValue().getOverduePayFormatted())));
         colStatus.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getStatus()));
         loanTable.setItems(loanData);
         loanTable.setPlaceholder(new Label("Brak wypożyczeń."));
-        loadMockLoans();
+        loadLoansFromApi();
         setupRowFactory();
         prolongBtn.disableProperty().bind(loanTable.getSelectionModel().selectedItemProperty().isNull()
                 .or(javafx.beans.binding.Bindings.createBooleanBinding(
@@ -38,7 +42,23 @@ public class LoansController {
                         },
                         loanTable.getSelectionModel().selectedItemProperty()
                 )));
-        updateStatistics();
+    }
+
+    private void loadLoansFromApi() {
+        apiClient.send("/loans", "GET", null, LoanDTO[].class)
+                .thenAccept(loansArray -> {
+                    if (loansArray != null) {
+                        Platform.runLater(() -> {
+                            loanData.clear();
+                            loanData.addAll(List.of(loansArray));
+                            updateStatistics();
+                        });
+                    }
+                })
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showError("Nie udało się pobrać wypożyczeń: " + ApiClient.getErrorMessage(ex)));
+                    return null;
+                });
     }
 
     private void setupRowFactory() {
@@ -48,8 +68,11 @@ public class LoansController {
                 super.updateItem(i, e);
                 getStyleClass().removeAll("table-row-overdue", "table-row-returned");
                 if (i != null && !e) {
-                    if (i.getReturnDate() == null && LocalDate.now().isAfter(i.getDueDate())) getStyleClass().add("table-row-overdue");
-                    else if (i.getReturnDate() != null) getStyleClass().add("table-row-returned");
+                    if (i.getReturnDate() == null && i.getDueDate() != null && LocalDate.now().isAfter(i.getDueDate())) {
+                        getStyleClass().add("table-row-overdue");
+                    } else if (i.getReturnDate() != null) {
+                        getStyleClass().add("table-row-returned");
+                    }
                 }
             }
         });
@@ -63,14 +86,27 @@ public class LoansController {
 
     @FXML
     private void requestProlongation() {
-        LoanDTO s = loanTable.getSelectionModel().getSelectedItem();
-        if (s != null) {
-            s.setExtended(true);
-            s.setDueDate(s.getDueDate().plusDays(7));
-            loanTable.refresh();
-            updateStatistics();
-            showAlert();
-            loanTable.getSelectionModel().clearSelection();
+        LoanDTO selected = loanTable.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            apiClient.send("/loans/" + selected.getId() + "/prolong", "POST", null, LoanDTO.class)
+                    .thenAccept(updatedLoan -> {
+                        if (updatedLoan != null) {
+                            Platform.runLater(() -> {
+                                int index = loanData.indexOf(selected);
+                                if (index >= 0) {
+                                    loanData.set(index, updatedLoan);
+                                }
+                                loanTable.refresh();
+                                updateStatistics();
+                                showAlert();
+                                loanTable.getSelectionModel().clearSelection();
+                            });
+                        }
+                    })
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> showError(ApiClient.getErrorMessage(ex)));
+                        return null;
+                    });
         }
     }
 
@@ -78,6 +114,19 @@ public class LoansController {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, "Przedłużono termin.");
         alert.setTitle("Sukces");
         alert.setHeaderText(null);
+        applyDialogStyles(alert);
+        alert.showAndWait();
+    }
+
+    private void showError(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, message);
+        alert.setTitle("Błąd");
+        alert.setHeaderText(null);
+        applyDialogStyles(alert);
+        alert.showAndWait();
+    }
+
+    private void applyDialogStyles(Alert alert) {
         DialogPane p = alert.getDialogPane();
         p.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
         p.getStyleClass().add("root-container");
@@ -86,14 +135,5 @@ public class LoansController {
             ok.getStyleClass().add("button-primary");
             ok.setText("Rozumiem");
         }
-        alert.showAndWait();
-    }
-
-    private void loadMockLoans() {
-        loanData.addAll(
-                LoanDTO.builder().bookTitle("Rok 1984").dueDate(LocalDate.now().plusDays(5)).extended(false).overduePay(50L).build(),
-                LoanDTO.builder().bookTitle("Hobbit").dueDate(LocalDate.now().minusDays(2)).extended(true).overduePay(50L).build(),
-                LoanDTO.builder().bookTitle("Wiedźmin").dueDate(LocalDate.now().minusDays(10)).returnDate(LocalDate.now().minusDays(5)).extended(false).overduePay(50L).build()
-        );
     }
 }

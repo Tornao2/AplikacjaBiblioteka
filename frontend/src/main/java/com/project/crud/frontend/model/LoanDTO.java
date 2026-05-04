@@ -34,9 +34,9 @@ public class LoanDTO {
         return "AKTYWNE";
     }
     public boolean isOverdue() {
-        return returnDate == null && LocalDate.now().isAfter(dueDate);
+        return returnDate == null && dueDate != null && LocalDate.now().isAfter(dueDate);
     }
     public double getOverduePayFormatted() {
-        return overduePay / 100.0;
+        return overduePay != null ? overduePay / 100.0 : 0.0;
     }
 }

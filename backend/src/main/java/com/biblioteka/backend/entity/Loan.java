@@ -25,8 +25,16 @@ public class Loan {
     private LocalDate dueDate;
     @Column(name = "return_date")
     private LocalDate returnDate;
+    @Builder.Default
     @Column(nullable = false)
     private boolean extended = false;
+    @Builder.Default
     @Column(name = "overdue_pay")
     private Long overduePay = 0L;
+    @PrePersist
+    protected void onCreate() {
+        if (this.loanDate == null) {
+            this.loanDate = LocalDate.now();
+        }
+    }
 }

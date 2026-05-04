@@ -1,7 +1,8 @@
 package com.project.crud.frontend.controllers;
 
+import com.project.crud.frontend.ApiClient;
 import com.project.crud.frontend.model.UserDTO;
-import com.project.crud.frontend.model.UserRole;
+import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -11,7 +12,10 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 public class AdminDeleteUsersController {
@@ -22,19 +26,21 @@ public class AdminDeleteUsersController {
     @FXML private TableColumn<UserDTO, Void> colActions;
 
     private final ObservableList<UserDTO> masterData = FXCollections.observableArrayList();
+    private ApiClient apiClient;
 
     @FXML
     public void initialize() {
+        this.apiClient = new ApiClient(usersTable);
         setupTableColumns();
         setupFiltering();
-        loadInitialData();
+        loadUsersFromApi();
         usersTable.setPlaceholder(new Label("Nie znaleziono użytkowników."));
     }
 
     private void setupTableColumns() {
         colId.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getId()));
         colUsername.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getUsername()));
-        colFullName.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getFullName())); // Zakładam, że UserDTO ma getFullName()
+        colFullName.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getFullName()));
         colEmail.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getEmail()));
         colRole.setCellValueFactory(d -> new SimpleStringProperty(
                 d.getValue().getRole() != null ? d.getValue().getRole().name() : "BRAK"));
@@ -71,17 +77,35 @@ public class AdminDeleteUsersController {
         usersTable.setItems(filteredData);
     }
 
-    private void handleDeleteRequest(UserDTO user) {
-        if (!canDeleteUser(user)) {
-            showAlert(Alert.AlertType.ERROR, "Błąd", "Nie można usunąć użytkownika.", "Upewnij się, że nie ma on aktywnych wypożyczeń.");
-            return;
-        }
-        showAlert(Alert.AlertType.CONFIRMATION, "Potwierdzenie", "Usunąć użytkownika " + user.getUsername() + "?", "Ta operacja jest nieodwracalna.")
-                .filter(res -> res == ButtonType.OK)
-                .ifPresent(res -> masterData.remove(user));
+    private void loadUsersFromApi() {
+        apiClient.send("/users", "GET", null, UserDTO[].class)
+                .thenAccept(usersArray -> {
+                    if (usersArray != null) {
+                        Platform.runLater(() -> {
+                            masterData.clear();
+                            masterData.addAll(List.of(usersArray));
+                        });
+                    }
+                })
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Błąd", "Nie udało się pobrać danych", ApiClient.getErrorMessage(ex)));
+                    return null;
+                });
     }
 
-    private boolean canDeleteUser(UserDTO user) { return true; }
+    private void handleDeleteRequest(UserDTO user) {
+        showAlert(Alert.AlertType.CONFIRMATION, "Potwierdzenie", "Usunąć użytkownika " + user.getUsername() + "?", "Ta operacja jest nieodwracalna.")
+                .filter(res -> res == ButtonType.OK)
+                .ifPresent(res -> apiClient.send("/users/" + user.getId(), "DELETE", null, Void.class)
+                        .thenAccept(v -> Platform.runLater(() -> {
+                            masterData.remove(user);
+                            usersTable.refresh();
+                        }))
+                        .exceptionally(ex -> {
+                            Platform.runLater(() -> showAlert(Alert.AlertType.ERROR, "Błąd usuwania", "Nie można usunąć użytkownika", ApiClient.getErrorMessage(ex)));
+                            return null;
+                        }));
+    }
 
     private java.util.Optional<ButtonType> showAlert(Alert.AlertType type, String title, String header, String content) {
         Alert alert = new Alert(type);
@@ -89,13 +113,26 @@ public class AdminDeleteUsersController {
         alert.setHeaderText(header);
         alert.setContentText(content);
         DialogPane pane = alert.getDialogPane();
-        pane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
+        pane.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/com/project/crud/frontend/style.css")).toExternalForm());
         pane.getStyleClass().add("root-container");
+        pane.setMinWidth(400);
+        pane.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+        pane.setMinHeight(Region.USE_PREF_SIZE);
+        for (javafx.scene.Node node : pane.getChildrenUnmodifiable()) {
+            if (node instanceof Label) {
+                ((Label) node).setWrapText(true);
+                ((Label) node).setMinWidth(Region.USE_PREF_SIZE);
+                ((Label) node).setMaxWidth(Double.MAX_VALUE);
+            }
+        }
         if (type == Alert.AlertType.CONFIRMATION) {
             styleButton(pane, ButtonType.OK, "Tak, usuń", "button-primary");
             styleButton(pane, ButtonType.CANCEL, "Anuluj", "button-outline-danger");
         } else {
             styleButton(pane, ButtonType.OK, "Rozumiem", "button-primary");
+        }
+        if (pane.getScene() != null && pane.getScene().getWindow() != null) {
+            Platform.runLater(() -> pane.getScene().getWindow().sizeToScene());
         }
         return alert.showAndWait();
     }
@@ -106,17 +143,5 @@ public class AdminDeleteUsersController {
             btn.setText(text);
             btn.getStyleClass().add(styleClass);
         }
-    }
-
-    private void loadInitialData() {
-        masterData.addAll(
-                createUser(1L, "admin_super", "Super", "Admin", "admin@library.com", UserRole.Admin),
-                createUser(2L, "jan_nowak", "Jan", "Nowak", "j.nowak@gmail.com", UserRole.Czytelnik),
-                createUser(3L, "bibliotekarz1", "Marta", "Zielińska", "staff@library.com", UserRole.Bibliotekarz)
-        );
-    }
-
-    private UserDTO createUser(Long id, String u, String f, String l, String e, UserRole r) {
-        return UserDTO.builder().id(id).username(u).firstName(f).lastName(l).email(e).role(r).build();
     }
 }
