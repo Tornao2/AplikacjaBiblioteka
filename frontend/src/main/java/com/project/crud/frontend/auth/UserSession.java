@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter @Setter
 public class UserSession {
     @Getter
-    private static UserSession instance;
+    private static volatile UserSession instance;
     private AuthResponse token;
 
     private UserSession(AuthResponse token) {
@@ -14,11 +14,19 @@ public class UserSession {
     }
 
     public static void login(AuthResponse token) {
-        instance = new UserSession(token);
+        if (instance == null) {
+            synchronized (UserSession.class) {
+                if (instance == null) {
+                    instance = new UserSession(token);
+                }
+            }
+        }
     }
 
     public static void logout() {
-        instance = null;
+        synchronized (UserSession.class) {
+            instance = null;
+        }
     }
 
     public AuthResponse getToken() {

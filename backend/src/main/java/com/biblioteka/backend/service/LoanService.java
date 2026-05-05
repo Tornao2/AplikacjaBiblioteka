@@ -1,20 +1,21 @@
 package com.biblioteka.backend.service;
 
+import com.biblioteka.backend.dto.FinanceDTO;
 import com.biblioteka.backend.dto.LoanDTO;
 import com.biblioteka.backend.dto.SystemSettingsDTO;
-import com.biblioteka.backend.entity.Book;
-import com.biblioteka.backend.entity.BookStatus;
-import com.biblioteka.backend.entity.Loan;
-import com.biblioteka.backend.entity.User;
+import com.biblioteka.backend.entity.*;
 import com.biblioteka.backend.repository.BookRepository;
 import com.biblioteka.backend.repository.LoanRepository;
 import com.biblioteka.backend.repository.UserRepository;
+import com.biblioteka.backend.service.obserwator.LoanReturnedEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -28,8 +29,11 @@ public class LoanService {
     private final LoanRepository loanRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+    private final FinanceService financeService;
     private final SystemSettingsService settingsService;
     private final SystemLogService logService;
+    private final ApplicationEventPublisher eventPublisher;
+
 
     @Transactional(readOnly = true)
     public List<LoanDTO> getAllLoans() {
@@ -147,12 +151,19 @@ public class LoanService {
         }
         Book book = bookRepository.findById(loan.getBookId())
                 .orElseThrow(() -> new RuntimeException("Książka nie istnieje w bazie."));
+        Double penalty = (double) (loan.getOverduePay()/100);
         loan.setReturnDate(LocalDate.now());
         book.setStatus(BookStatus.Dostepna);
         bookRepository.save(book);
         loanRepository.save(loan);
-        String operator = getCurrentUsername();
-        logService.addLog(operator, "LOAN_RETURN", "Zwrócono książkę o ID: " + book.getId(), "INFO");
+        eventPublisher.publishEvent(new LoanReturnedEvent(
+                loan.getId(),
+                book.getId(),
+                loan.getUserId(),
+                penalty,
+                book.getTitle(),
+                getCurrentUsername()
+        ));
     }
 
     private String getCurrentUsername() {

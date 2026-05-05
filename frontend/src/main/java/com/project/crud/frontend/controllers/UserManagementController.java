@@ -55,7 +55,7 @@ public class UserManagementController {
         colDueDate.setCellValueFactory(d -> new SimpleObjectProperty<>(d.getValue().getDueDate()));
         colStatus.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getStatus()));
         payDue.setCellValueFactory(d -> new SimpleStringProperty(
-                d.getValue().getOverduePay() != null ? d.getValue().getOverduePay() + " PLN" : "0 PLN"));
+                d.getValue().getOverduePay() != null ? d.getValue().getOverduePay()/100 + " PLN" : "0 PLN"));
         Stream.of(userTable, userLoansTable).forEach(t -> t.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY));
     }
 

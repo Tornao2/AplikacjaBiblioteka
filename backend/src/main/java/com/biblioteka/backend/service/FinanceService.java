@@ -50,7 +50,6 @@ public class FinanceService {
         String operator = getCurrentUsername();
         logService.addLog(operator, "FINANCE_ENTRY",
                 "Dodano wpis finansowy (" + saved.getType() + ") na kwotę: " + saved.getAmount() + " zł", "INFO");
-
         return mapToDTO(saved);
     }
 
