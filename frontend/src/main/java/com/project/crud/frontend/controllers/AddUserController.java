@@ -46,14 +46,11 @@ public class AddUserController {
             apiClient.send("/users", "POST", request, UserDTO.class)
                     .thenAccept(registeredUser -> {
                         if (registeredUser != null) {
-                            Platform.runLater(() -> {
-                                showInfo("Czytelnik " + registeredUser.getFirstName() + " " + registeredUser.getLastName() + " dodany pomyślnie.", Alert.AlertType.INFORMATION);
-                                handleClear();
-                            });
+                            Platform.runLater(this::handleClear);
                         }
                     })
                     .exceptionally(ex -> {
-                        Platform.runLater(() -> showInfo(ApiClient.getErrorMessage(ex), Alert.AlertType.ERROR));
+                        Platform.runLater(() -> showInfo(ApiClient.getErrorMessage(ex)));
                         return null;
                     });
         }
@@ -75,14 +72,14 @@ public class AddUserController {
     }
 
     private boolean err(String msg) {
-        showInfo(msg, Alert.AlertType.ERROR);
+        showInfo(msg);
         return false;
     }
 
-    private void showInfo(String message, Alert.AlertType type) {
-        Alert alert = new Alert(type, message);
+    private void showInfo(String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR, message);
         alert.setHeaderText(null);
-        alert.setTitle(type == Alert.AlertType.INFORMATION ? "Sukces" : "Błąd");
+        alert.setTitle("Błąd");
         DialogPane pane = alert.getDialogPane();
         pane.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());
         Button okBtn = (Button) pane.lookupButton(ButtonType.OK);

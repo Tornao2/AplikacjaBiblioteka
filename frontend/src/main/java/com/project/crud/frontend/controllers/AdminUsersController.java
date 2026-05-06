@@ -106,7 +106,7 @@ public class AdminUsersController {
         grid.addRow(rowOffset++, new Label("Email:"), email);
         grid.addRow(rowOffset++, new Label("Telefon:"), phone);
         grid.addRow(rowOffset++, new Label("Pensja:"), salary);
-        grid.addRow(rowOffset++, new Label("Data zatrudnienia:"), hire);
+        grid.addRow(rowOffset, new Label("Data zatrudnienia:"), hire);
         dialog.getDialogPane().setContent(grid);
         final PasswordField finalPass = pass;
         Button confirmBtn = (Button) dialog.getDialogPane().lookupButton(dialog.getDialogPane().getButtonTypes().get(0));
@@ -134,7 +134,6 @@ public class AdminUsersController {
                             }
                         }
                         refreshData();
-                        showAlert("Sukces", "Dane zostały zaktualizowane.", Alert.AlertType.INFORMATION);
                     }))
                     .exceptionally(ex -> {
                         Platform.runLater(() -> {

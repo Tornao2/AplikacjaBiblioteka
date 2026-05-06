@@ -8,19 +8,16 @@ import com.biblioteka.backend.repository.UserRepository;
 import com.biblioteka.backend.service.strategia.PenaltyContext;
 import com.biblioteka.backend.service.strategia.PenaltyStrategy;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class PenaltyTaskService {
-    private final JdbcTemplate jdbcTemplate;
     private final SystemSettingsRepository systemSettingsRepository;
     private final LoanRepository loanRepository;
     private final UserRepository userRepository;

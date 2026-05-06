@@ -9,7 +9,6 @@ import java.util.List;
 
 @Repository
 public interface LoanRepository extends JpaRepository<Loan, Long> {
-    List<Loan> findByUserIdAndReturnDateIsNull(Long userId); //
     List<Loan> findByBookIdAndReturnDateIsNull(Long bookId);
     List<Loan> findAllByReturnDateIsNullAndDueDateBefore(LocalDate date);
 }

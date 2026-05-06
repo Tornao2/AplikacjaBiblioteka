@@ -1,6 +1,5 @@
 package com.biblioteka.backend.service;
 
-import com.biblioteka.backend.dto.FinanceDTO;
 import com.biblioteka.backend.dto.LoanDTO;
 import com.biblioteka.backend.dto.SystemSettingsDTO;
 import com.biblioteka.backend.entity.*;
@@ -15,7 +14,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -29,11 +27,9 @@ public class LoanService {
     private final LoanRepository loanRepository;
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
-    private final FinanceService financeService;
     private final SystemSettingsService settingsService;
     private final SystemLogService logService;
     private final ApplicationEventPublisher eventPublisher;
-
 
     @Transactional(readOnly = true)
     public List<LoanDTO> getAllLoans() {
@@ -96,6 +92,9 @@ public class LoanService {
         if (loan.getReturnDate() != null) {
             throw new RuntimeException("Nie można przedłużyć już zwróconego wypożyczenia.");
         }
+        if (loan.getDueDate().isBefore(LocalDate.now())){
+            throw new RuntimeException("Jest już po terminie.");
+        }
         if (loan.isExtended()) {
             throw new RuntimeException("To wypożyczenie zostało już raz przedłużone.");
         }
@@ -129,7 +128,7 @@ public class LoanService {
                 .userId(userId)
                 .bookId(bookId)
                 .loanDate(now)
-                .dueDate(now.plusDays(settings.getMaxLoanDuration()))
+                .dueDate(now.plusDays(settingsService.getSettings().getMaxLoanDuration()))
                 .extended(false)
                 .overduePay(0L)
                 .build();

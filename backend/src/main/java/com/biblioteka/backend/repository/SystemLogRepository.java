@@ -8,6 +8,4 @@ import java.util.List;
 @Repository
 public interface SystemLogRepository extends JpaRepository<SystemLog, Long> {
     List<SystemLog> findAllByOrderByTimestampDesc();
-    List<SystemLog> findBySeverityIgnoreCase(String severity);
-    List<SystemLog> findByUserContainingIgnoreCase(String user);
 }

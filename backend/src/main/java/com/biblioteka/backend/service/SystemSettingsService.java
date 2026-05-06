@@ -29,7 +29,6 @@ public class SystemSettingsService {
                 .orElseGet(SystemSettings::new);
         String oldValues = String.format("Czas wypożyczenia: %d dni, Limit: %d książek, Kara: %.2f zł",
                 settings.getMaxLoanDuration(), settings.getUserLoanLimit(), settings.getDailyPenaltyRate());
-
         settings.setId(SETTINGS_ID);
         settings.setMaxLoanDuration(dto.getMaxLoanDuration());
         settings.setUserLoanLimit(dto.getUserLoanLimit());

@@ -124,7 +124,6 @@ public class UserManagementController {
                         book.setStatus(BookStatus.Wypozyczona);
                         allLoans.add(newLoan);
                         showLoansForUser(selectedUser.getId());
-                        showInfo("Pomyślnie wypożyczono książkę: " + book.getTitle());
                     }))
                     .exceptionally(ex -> {
                         Platform.runLater(() -> showError("Nie można wypożyczyć: " + ApiClient.getErrorMessage(ex)));
@@ -170,7 +169,6 @@ public class UserManagementController {
                             .filter(b -> b.getId().equals(loan.getBookId()))
                             .findFirst().ifPresent(b -> b.setStatus(BookStatus.Dostepna));
                     loadLoansFromApi();
-                    showInfo("Zwrócono książkę.");
                 }))
                 .exceptionally(ex -> {
                     Platform.runLater(() -> showError("Nie udało się zwrócić książki: " + ApiClient.getErrorMessage(ex)));
@@ -206,20 +204,14 @@ public class UserManagementController {
         can.setText("Anuluj");
     }
 
-    private void showInfo(String msg) {
-        Alert a = new Alert(Alert.AlertType.INFORMATION, msg);
-        styleAlert(a, "Sukces");
-        a.showAndWait();
-    }
-
     private void showError(String msg) {
         Alert a = new Alert(Alert.AlertType.ERROR, msg);
-        styleAlert(a, "Błąd");
+        styleAlert(a);
         a.showAndWait();
     }
 
-    private void styleAlert(Alert a, String title) {
-        a.setTitle(title);
+    private void styleAlert(Alert a) {
+        a.setTitle("Błąd");
         a.setHeaderText(null);
         DialogPane p = a.getDialogPane();
         p.getStylesheets().add(getClass().getResource("/com/project/crud/frontend/style.css").toExternalForm());

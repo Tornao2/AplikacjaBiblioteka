@@ -69,7 +69,6 @@ public class AdminSettingsController {
                     .thenAccept(res -> Platform.runLater(() -> {
                         MainController.setLoading(false);
                         cachedSettings = dta;
-                        showAlert(Alert.AlertType.INFORMATION, "Ustawienia zostały zapisane.");
                     }))
                     .exceptionally(e -> {
                         Platform.runLater(() -> {

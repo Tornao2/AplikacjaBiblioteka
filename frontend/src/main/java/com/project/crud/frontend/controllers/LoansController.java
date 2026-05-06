@@ -38,7 +38,7 @@ public class LoansController {
                 .or(javafx.beans.binding.Bindings.createBooleanBinding(
                         () -> {
                             LoanDTO s = loanTable.getSelectionModel().getSelectedItem();
-                            return s != null && (s.getReturnDate() != null || s.isExtended());
+                            return s != null && (s.getReturnDate() != null || s.isExtended() || s.getDueDate().isBefore(LocalDate.now()));
                         },
                         loanTable.getSelectionModel().selectedItemProperty()
                 )));
@@ -98,7 +98,6 @@ public class LoansController {
                                 }
                                 loanTable.refresh();
                                 updateStatistics();
-                                showAlert();
                                 loanTable.getSelectionModel().clearSelection();
                             });
                         }
@@ -108,14 +107,6 @@ public class LoansController {
                         return null;
                     });
         }
-    }
-
-    private void showAlert() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, "Przedłużono termin.");
-        alert.setTitle("Sukces");
-        alert.setHeaderText(null);
-        applyDialogStyles(alert);
-        alert.showAndWait();
     }
 
     private void showError(String message) {
