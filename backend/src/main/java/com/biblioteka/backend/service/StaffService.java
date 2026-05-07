@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,17 +38,20 @@ public class StaffService {
 
     @Transactional
     public StaffDTO createStaff(StaffRegistrationRequest request) {
-        User user = User.builder()
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(request.getEmail())
-                .role(request.getRole() != null ? request.getRole() : UserRole.Bibliotekarz)
-                .build();
-        User savedUser = userRepository.save(user);
+        Optional<User> user = userRepository.findByUsername(request.getUsername());
+        if (user.isEmpty()){
+            User actualUser = User.builder()
+                    .username(request.getUsername())
+                    .password(passwordEncoder.encode(request.getPassword()))
+                    .firstName(request.getFirstName())
+                    .lastName(request.getLastName())
+                    .email(request.getEmail())
+                    .role(request.getRole() != null ? request.getRole() : UserRole.Bibliotekarz)
+                    .build();
+            user = Optional.of(userRepository.save(actualUser));
+        }
         Staff staff = Staff.builder()
-                .user(savedUser)
+                .user(user.get())
                 .phoneNumber(request.getPhoneNumber())
                 .hireDate(request.getHireDate())
                 .salary(BigDecimal.valueOf(request.getSalary()))
@@ -55,8 +59,7 @@ public class StaffService {
         Staff savedStaff = staffRepository.save(staff);
         String username = getCurrentUsername();
         logService.addLog(username, "STAFF_CREATED",
-                "Dodano pracownika: " + savedUser.getFullName(), "INFO");
-
+                "Dodano pracownika: " + user.get().getFullName(), "INFO");
         return mapToDTO(savedStaff);
     }
 

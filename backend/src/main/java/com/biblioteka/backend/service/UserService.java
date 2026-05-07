@@ -4,6 +4,7 @@ import com.biblioteka.backend.dto.UserDTO;
 import com.biblioteka.backend.dto.UserRegistrationRequest;
 import com.biblioteka.backend.entity.User;
 import com.biblioteka.backend.repository.LoanRepository;
+import com.biblioteka.backend.repository.StaffRepository;
 import com.biblioteka.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -21,6 +22,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final SystemLogService logService;
     private final LoanRepository loanRepository;
+    private final StaffRepository staffRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
@@ -56,6 +58,11 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Użytkownik nie istnieje."));
         boolean hasActiveLoans = loanRepository.findAll().stream()
                 .anyMatch(loan -> loan.getUserId().equals(id) && loan.getReturnDate() == null);
+        boolean isStaff = staffRepository.findAll().stream()
+                .anyMatch(staff -> staff.getUser().equals(user));
+        if (isStaff) {
+            throw new RuntimeException("Nie można usunąć konto pracownika bez pierwszej zmiany roli.");
+        }
         if (hasActiveLoans) {
             throw new RuntimeException("Nie można usunąć użytkownika, który ma aktywne wypożyczenia.");
         }
