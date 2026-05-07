@@ -49,6 +49,10 @@ public class StaffService {
                     .role(request.getRole() != null ? request.getRole() : UserRole.Bibliotekarz)
                     .build();
             user = Optional.of(userRepository.save(actualUser));
+        } else {
+            User userTemp = user.get();
+            userTemp.setRole(request.getRole());
+            userRepository.save(userTemp);
         }
         Staff staff = Staff.builder()
                 .user(user.get())
@@ -83,7 +87,6 @@ public class StaffService {
         String username = getCurrentUsername();
         logService.addLog(username, "STAFF_UPDATED",
                 "Zaktualizowano dane: " + user.getFullName(), "INFO");
-
         return mapToDTO(updated);
     }
 
